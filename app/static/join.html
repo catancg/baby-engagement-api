@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Baby Club</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body { font-family: Arial; max-width: 420px; margin: 40px auto; }
+    input, select, button {
+      width: 100%; padding: 12px; margin-top: 12px; font-size: 16px;
+    }
+    button { background:#ff7aa8; color:white; border:none; border-radius:8px; }
+  </style>
+</head>
+<body>
+
+<h2>Unite a nuestra comunidad 🎁</h2>
+<p>Recibi promociones especiales y regalos</p>
+
+<form id="form">
+  <input placeholder="Tu Nombre" name="first_name" required />
+
+  <select name="channel">
+    <option value="email">Email</option>
+    <option value="whatsapp">WhatsApp</option>
+    <option value="instagram">Instagram</option>
+  </select>
+
+  <input placeholder="Email or phone or @username" name="value" required />
+
+  <select name="Edad del bebe">
+    <option value="">Baby stage</option>
+    <option value="En embarazo">Pregnant</option>
+    <option value="0_6 meses">0–6 months</option>
+    <option value="6_12 meses">6–12 months</option>
+    <option value="1_3 años">1–3 years</option>
+    <option value="3 años o mas">3+ years</option>
+  </select>
+
+  <button>Unite</button>
+</form>
+
+<p id="msg"></p>
+
+<script>
+const form = document.getElementById("form");
+const channelSelect = document.querySelector('select[name="channel"]');
+const valueInput = document.querySelector('input[name="value"]');
+const msg = document.getElementById("msg");
+
+function updatePlaceholder() {
+  const channel = channelSelect.value;
+
+  if (channel === "email") {
+    valueInput.placeholder = "Ingresá tu email (ejemplo@gmail.com)";
+    valueInput.type = "email";
+  } else if (channel === "whatsapp") {
+    valueInput.placeholder = "Ingresá tu WhatsApp (ej: 3446456789)";
+    valueInput.type = "tel";
+  } else if (channel === "instagram") {
+    valueInput.placeholder = "Tu usuario de Instagram (@usuario)";
+    valueInput.type = "text";
+  }
+}
+
+// run once on load
+updatePlaceholder();
+
+// update when selection changes
+channelSelect.addEventListener("change", updatePlaceholder);
+
+form.onsubmit = async (e) => {
+  e.preventDefault();
+
+  const data = Object.fromEntries(new FormData(form).entries());
+  data.consent_promotions = true;
+
+  // optional: normalize instagram handle (store without @)
+  if (data.channel === "instagram") {
+    data.value = data.value.trim().replace(/^@+/, "");
+  } else {
+    data.value = data.value.trim();
+  }
+
+  const res = await fetch("/signup", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data)
+  });
+
+  if (res.ok) {
+    msg.innerText = "Ya sos parte! 🎉";
+    form.reset();
+    updatePlaceholder(); // because reset sets channel back to first option
+  } else if (res.status === 409) {
+    msg.innerText = "Este contacto ya está registrado 😉";
+  } else {
+    msg.innerText = "Ocurrió un error. Probá nuevamente.";
+  }
+};
+</script>
+
+</body>
+</html>
