@@ -13,7 +13,7 @@ SMTP_USERNAME = os.getenv("SMTP_USERNAME")
 SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
 SMTP_FROM_NAME = os.getenv("SMTP_FROM_NAME", "Tienda")
 SMTP_FROM_EMAIL = os.getenv("SMTP_FROM_EMAIL")
-
+BASE_URL = os.getenv("APP_BASE_URL", "http://127.0.0.1:8000")
 def render_email(template_key: str, payload: dict) -> tuple[str, str]:
     # payload will contain dynamic values (like email later)
 
@@ -36,7 +36,7 @@ Nos encanta recibirte, ayudarte a elegir y que puedas ver los productos en perso
 
 — — — — — — — — — — — — — — — —
 Si preferís no recibir más mensajes, podés darte de baja acá:
-http://127.0.0.1:8000/unsubscribe?channel=email&value={email}
+f"{BASE_URL}/unsubscribe?channel=email&value={email}"
 """
 
         return subject, body
