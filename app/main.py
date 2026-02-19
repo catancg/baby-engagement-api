@@ -8,6 +8,7 @@ from app.routers.signup import router as signup_router
 from app.routers.unsubscribe import router as unsubscribe_router
 from app.routers.admin import router as admin_router
 from app.routers.admin_dashboard import router as admin_dashboard_router
+from app.routers.db_check import router as db_check_router
 
 app = FastAPI(title="Baby Store Engagement API")
 
@@ -16,6 +17,7 @@ app.include_router(signup_router)
 app.include_router(unsubscribe_router)
 app.include_router(admin_router)
 app.include_router(admin_dashboard_router)
+app.include_router(db_check_router)
 
 
 app.mount("/static", StaticFiles(directory="app/static"), name="static")

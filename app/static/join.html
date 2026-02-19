@@ -92,10 +92,9 @@ form.onsubmit = async (e) => {
     msg.innerText = "Ya sos parte! 🎉";
     form.reset();
     updatePlaceholder(); // because reset sets channel back to first option
-  } else if (res.status === 409) {
-    msg.innerText = "Este contacto ya está registrado 😉";
   } else {
-    msg.innerText = "Ocurrió un error. Probá nuevamente.";
+    const text = await res.text();
+    msg.innerText = `Error (${res.status}): ${text}`;
   }
 };
 </script>
