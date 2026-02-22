@@ -1,6 +1,20 @@
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 from datetime import datetime, timezone, timedelta
+WEEKLY_SEND_HOUR_UTC = 13  # Monday 13:00 UTC
+
+def next_monday_utc_at(hour_utc: int) -> datetime:
+    now = datetime.now(timezone.utc)
+    # Monday = 0 ... Sunday = 6
+    days_ahead = (0 - now.weekday()) % 7
+    candidate = (now + timedelta(days=days_ahead)).replace(
+        hour=hour_utc, minute=0, second=0, microsecond=0
+    )
+    # If it's already past Monday@hour this week, schedule next week
+    if candidate <= now:
+        candidate += timedelta(days=7)
+    return candidate
+
 
 def queue_weekly_promo(db: Session):
     """
@@ -10,7 +24,7 @@ def queue_weekly_promo(db: Session):
     """
 
     # schedule time: "now" (or choose next Monday 10:00 etc.)
-    scheduled_for = datetime.now(timezone.utc)
+    scheduled_for = next_monday_utc_at(WEEKLY_SEND_HOUR_UTC)
 
     # Find an active weekly email campaign
     campaign = db.execute(text("""

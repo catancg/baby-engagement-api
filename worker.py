@@ -14,6 +14,10 @@ SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
 SMTP_FROM_NAME = os.getenv("SMTP_FROM_NAME", "Tienda")
 SMTP_FROM_EMAIL = os.getenv("SMTP_FROM_EMAIL")
 BASE_URL = os.getenv("APP_BASE_URL", "http://127.0.0.1:8000")
+EMAIL_SEND_MODE = os.getenv("EMAIL_SEND_MODE", "LIVE").upper()
+TEST_TO_EMAIL = os.getenv("TEST_TO_EMAIL", "").strip()
+DRY_RUN_SEEN = set()
+DRY_RUN_SLEEP_SECONDS = int(os.getenv("DRY_RUN_SLEEP_SECONDS", "10"))
 def render_email(template_key: str, payload: dict) -> tuple[str, str]:
     # payload will contain dynamic values (like email later)
 
@@ -105,16 +109,43 @@ def main():
                 continue
 
             for outbox_id, template_key, to_email in batch:
+                original_to = to_email  # keep for logs even if we overwrite to_email
                 try:
-                    subject, body = render_email(template_key, {"email": to_email})
+                    subject, body = render_email(template_key, {"email": original_to})
+
+                    # ---- SAFE MODES ----
+                    if EMAIL_SEND_MODE == "DRY_RUN":
+                        print("DRY_RUN -> Would send", outbox_id, "to:", original_to, "template:", template_key)
+                        DRY_RUN_SEEN.add(outbox_id)
+                        # Do NOT mark sent. Leave it queued.
+                        continue
+
+                    if EMAIL_SEND_MODE == "TEST":
+                        if not TEST_TO_EMAIL:
+                            raise RuntimeError("EMAIL_SEND_MODE=TEST but TEST_TO_EMAIL is not set")
+
+                        to_email = TEST_TO_EMAIL
+                        subject = f"[TEST] {subject}"
+                        body = (
+                            f"⚠️ MODO PRUEBA\n"
+                            f"Este email originalmente iba dirigido a: {original_to}\n\n"
+                            + body
+                        )
+
+                    # ---- LIVE / TEST SEND ----
                     send_smtp(to_email, subject, body)
                     mark_sent(db, outbox_id)
-                    print("SENT", outbox_id, "->", to_email)
+
+                    print("SENT", outbox_id, "->", to_email, "(original:", original_to, ")")
+
                 except Exception as e:
                     mark_failed(db, outbox_id, repr(e))
-                    print("FAILED", outbox_id, "->", to_email, "error:", repr(e))
+                    print("FAILED", outbox_id, "->", original_to, "error:", repr(e))
 
             db.commit()
+            if EMAIL_SEND_MODE == "DRY_RUN":
+                time.sleep(DRY_RUN_SLEEP_SECONDS)
+
         except Exception as e:
             db.rollback()
             print("WORKER LOOP ERROR:", repr(e))
