@@ -13,7 +13,8 @@ def require_admin_key(x_admin_key: str | None):
 
 @router.get("/ui", response_class=HTMLResponse)
 def admin_ui(x_admin_key: str | None = Header(default=None),
-    x_admin_key: str | None = Header(default=None):
+    x_admin_key: str | None = Header(default=None),
+):
     admin_key = key or x_admin_key
     require_admin_key(x_admin_key)
 
