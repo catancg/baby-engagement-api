@@ -16,7 +16,7 @@ def admin_ui(key: str | None = Query(default=None),
     x_admin_key: str | None = Header(default=None),
 ):
     admin_key = key or x_admin_key
-    require_admin_key(x_admin_key)
+    require_admin_key(admin_key)
 
     # JS will call the API endpoints using the same x-admin-key
     html = f"""
