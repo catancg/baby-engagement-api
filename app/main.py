@@ -10,6 +10,8 @@ from app.routers.admin import router as admin_router
 from app.routers.admin_dashboard import router as admin_dashboard_router
 from app.routers.db_check import router as db_check_router
 from app.routers.admin_campaigns import router as admin_campaign_router
+from app.routers.admin_api import router as admin_api_router
+from app.routers.admin_ui import router as admin_ui_router
 
 app = FastAPI(title="Baby Store Engagement API")
 
@@ -20,6 +22,9 @@ app.include_router(admin_router)
 app.include_router(admin_dashboard_router)
 app.include_router(db_check_router)
 app.include_router(admin_campaign_router)
+app.include_router(admin_api_router)
+app.include_router(admin_ui_router)
+
 
 
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
