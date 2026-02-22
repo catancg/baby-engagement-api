@@ -1,7 +1,7 @@
 import os
 from fastapi import APIRouter, Header, HTTPException
 from fastapi.responses import HTMLResponse
-
+from fastapi import Query
 router = APIRouter(prefix="/admin", tags=["admin-ui"])
 
 def require_admin_key(x_admin_key: str | None):
