@@ -92,13 +92,13 @@ def admin_ui(key: str | None = Query(default=None),
       }}
     }});
     const text = await res.text();
-    if (!res.ok) throw new Error(`HTTP ${res.status}: ${text}`);
+    if (!res.ok) throw new Error(`HTTP ${{res.status}}: ${{text}}`);
     return JSON.parse(text);
   }}
 
   function renderKv(obj) {{
     return "<table>" + Object.entries(obj).map(([k,v]) =>
-      `<tr><th>${k}</th><td>${v}</td></tr>`
+      `<tr><th>${{k}}</th><td>${{v}}</td></tr>`
     ).join("") + "</table>";
   }}
 
