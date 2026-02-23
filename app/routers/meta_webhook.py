@@ -42,6 +42,8 @@ def verify_webhook(
     hub_verify_token: str | None = Query(default=None, alias="hub.verify_token"),
     hub_challenge: str | None = Query(default=None, alias="hub.challenge"),
 ):
+    print("VERIFY_TOKEN:", VERIFY_TOKEN)
+    print("hub_verify_token:", hub_verify_token)
     # Meta verification handshake
     if hub_mode == "subscribe" and hub_verify_token == VERIFY_TOKEN:
         return int(hub_challenge) if hub_challenge and hub_challenge.isdigit() else (hub_challenge or "")
