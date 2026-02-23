@@ -37,18 +37,21 @@ def verify_signature(app_secret: str, signature_header: str | None, body: bytes)
     return hmac.compare_digest(their_sig, our_sig)
 
 @router.get("")
-def verify_webhook(
-    hub_mode: str | None = Query(default=None, alias="hub.mode"),
-    hub_verify_token: str | None = Query(default=None, alias="hub.verify_token"),
-    hub_challenge: str | None = Query(default=None, alias="hub.challenge"),
-):
-    print("VERIFY_TOKEN:", VERIFY_TOKEN)
-    print("hub_verify_token:", hub_verify_token)
-    # Meta verification handshake
-    if hub_mode == "subscribe" and hub_verify_token == VERIFY_TOKEN:
-        return int(hub_challenge) if hub_challenge and hub_challenge.isdigit() else (hub_challenge or "")
-    raise HTTPException(status_code=403, detail="Verification failed")
+async def verify_webhook(request: Request):
+    print("FULL QUERY:", request.query_params)
 
+    hub_mode = request.query_params.get("hub.mode")
+    hub_verify_token = request.query_params.get("hub.verify_token")
+    hub_challenge = request.query_params.get("hub.challenge")
+
+    print("hub_mode:", hub_mode)
+    print("hub_verify_token:", hub_verify_token)
+    print("hub_challenge:", hub_challenge)
+
+    if hub_mode == "subscribe" and hub_verify_token == VERIFY_TOKEN:
+        return hub_challenge or ""
+
+    raise HTTPException(status_code=403, detail="Verification failed")
 @router.post("")
 async def receive_webhook(request: Request, db: Session = Depends(get_db)):
     raw = await request.body()
