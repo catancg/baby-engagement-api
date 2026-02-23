@@ -12,7 +12,7 @@ from app.routers.db_check import router as db_check_router
 from app.routers.admin_campaigns import router as admin_campaign_router
 from app.routers.admin_api import router as admin_api_router
 from app.routers.admin_ui import router as admin_ui_router
-
+from app.routers.meta_webhook import router as meta_webhook_router
 app = FastAPI(title="Baby Store Engagement API")
 
 app.include_router(health_router)
@@ -24,6 +24,7 @@ app.include_router(db_check_router)
 app.include_router(admin_campaign_router)
 app.include_router(admin_api_router)
 app.include_router(admin_ui_router)
+app.include_router(meta_webhook_router)
 
 
 
