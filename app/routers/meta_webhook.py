@@ -17,24 +17,34 @@ VERIFY_SIGNATURES = os.getenv("META_VERIFY_SIGNATURES", "true").lower() == "true
 
 def verify_signature(app_secret: str, signature_header: str | None, body: bytes) -> bool:
     """
-    Meta sends:
-      X-Hub-Signature-256: sha256=<hex>
+    Meta sends: X-Hub-Signature-256: sha256=<hex>
+    We compute: HMAC_SHA256(app_secret, raw_body)
     """
-    # If we disabled verification, always allow
-    if not VERIFY_SIGNATURES:
+    if not app_secret:
+        print("SIG DEBUG: APP_SECRET empty -> allow")
         return True
 
-    # In prod you should have a secret; if missing, fail closed
-    if not app_secret:
+    app_secret = app_secret.strip()  # IMPORTANT: remove spaces/newlines
+
+    if not signature_header:
+        print("SIG DEBUG: missing signature header")
         return False
 
-    # Must have the header
-    if not signature_header or not signature_header.startswith("sha256="):
+    signature_header = signature_header.strip()
+
+    if not signature_header.startswith("sha256="):
+        print("SIG DEBUG: bad signature format:", signature_header[:20])
         return False
 
     their_sig = signature_header.split("sha256=", 1)[1].strip()
     our_sig = hmac.new(app_secret.encode("utf-8"), body, hashlib.sha256).hexdigest()
-    return hmac.compare_digest(their_sig, our_sig)
+
+    # Debug (safe): compare only prefix
+    print("SIG DEBUG: their:", their_sig[:12], "our:", our_sig[:12], "body_len:", len(body), "secret_len:", len(app_secret))
+
+    ok = hmac.compare_digest(their_sig, our_sig)
+    print("SIG DEBUG: match:", ok)
+    return ok
 
 @router.get("")
 async def verify_webhook(request: Request):
