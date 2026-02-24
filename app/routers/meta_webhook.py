@@ -9,8 +9,9 @@ from app.db.session import get_db
 router = APIRouter(prefix="/webhooks/meta", tags=["meta-webhooks"])
 
 VERIFY_TOKEN = os.getenv("IG_WEBHOOK_VERIFY_TOKEN", "")
-APP_SECRET = os.getenv("META_APP_SECRET", "")
-
+app_secret_runtime = os.getenv("META_APP_SECRET", "")
+print("META_APP_SECRET len:", len(app_secret_runtime))
+print("META_APP_SECRET head/tail:", app_secret_runtime[:4], app_secret_runtime[-4:])
 # NEW: feature flag to make local testing easy
 VERIFY_SIGNATURES = os.getenv("META_VERIFY_SIGNATURES", "true").lower() == "true"
 
@@ -71,9 +72,8 @@ async def receive_webhook(request: Request, db: Session = Depends(get_db)):
     print("META SIG HEADER:", sig)
     print("APP_SECRET set?:", bool(APP_SECRET), "len:", len(APP_SECRET or ""))
     print("RAW BODY len:", len(raw))
-    if not verify_signature(APP_SECRET, sig, raw):
+    if not verify_signature(app_secret_runtime, sig, raw):
         raise HTTPException(status_code=403, detail="Invalid signature")
-
     payload = await request.json()
     entries = payload.get("entry", [])
 
