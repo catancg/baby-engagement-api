@@ -58,6 +58,9 @@ async def receive_webhook(request: Request, db: Session = Depends(get_db)):
 
     # Verify signature if configured
     sig = request.headers.get("x-hub-signature-256")
+    print("META SIG HEADER:", sig)
+    print("APP_SECRET set?:", bool(APP_SECRET), "len:", len(APP_SECRET or ""))
+    print("RAW BODY len:", len(raw))
     if not verify_signature(APP_SECRET, sig, raw):
         raise HTTPException(status_code=403, detail="Invalid signature")
 
