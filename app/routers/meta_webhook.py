@@ -97,8 +97,8 @@ async def receive_webhook(request: Request, db: Session = Depends(get_db)):
                     text("""
                         select ci.id as identity_id, ci.customer_id
                         from customer_identities ci
-                        where ci.channel = :channel::channel_type
-                          and ci.value = :value
+                        where ci.channel = CAST(:channel AS channel_type)
+                        and ci.value = :value
                         limit 1
                     """),
                     {"channel": channel, "value": sender_value},
@@ -122,7 +122,7 @@ async def receive_webhook(request: Request, db: Session = Depends(get_db)):
                     identity_id = db.execute(
                         text("""
                             insert into customer_identities (customer_id, channel, value, is_primary)
-                            values (:customer_id, :channel::channel_type, :value, true)
+                            values (:customer_id, CAST(:channel AS channel_type), :value, true)
                             on conflict (channel, value) do nothing
                             returning id
                         """),
@@ -135,7 +135,7 @@ async def receive_webhook(request: Request, db: Session = Depends(get_db)):
                             text("""
                                 select ci.id as identity_id, ci.customer_id
                                 from customer_identities ci
-                                where ci.channel = :channel::channel_type
+                                where ci.channel = CAST(:channel AS channel_type)
                                   and ci.value = :value
                                 limit 1
                             """),
@@ -151,7 +151,7 @@ async def receive_webhook(request: Request, db: Session = Depends(get_db)):
                     db.execute(
                         text("""
                             insert into consents (customer_id, channel, purpose, status, source)
-                            values (:customer_id, :channel::channel_type, 'promotions', 'granted', 'ig_dm')
+                            values (:customer_id, CAST(:channel AS channel_type), 'promotions', 'granted', 'ig_dm')
                         """),
                         {"customer_id": customer_id, "channel": channel},
                     )
