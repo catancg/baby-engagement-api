@@ -89,7 +89,7 @@ async def receive_webhook(request: Request, db: Session = Depends(get_db)):
                 if not sender:
                     continue
 
-                channel = "instagram"  # later: detect facebook vs instagram
+                channel = "messenger"  # later: detect facebook vs instagram
                 sender_value = str(sender)
 
                 # 1) Find existing identity (prevents duplicate customers)
