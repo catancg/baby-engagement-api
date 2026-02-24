@@ -74,6 +74,7 @@ async def receive_webhook(request: Request, db: Session = Depends(get_db)):
     print("RAW BODY len:", len(raw))
     if app_secret_runtime and not verify_signature(app_secret_runtime, sig, raw):
         raise HTTPException(status_code=403, detail="Invalid signature")
+
     payload = await request.json()
     entries = payload.get("entry", [])
 
@@ -98,7 +99,7 @@ async def receive_webhook(request: Request, db: Session = Depends(get_db)):
                         select ci.id as identity_id, ci.customer_id
                         from customer_identities ci
                         where ci.channel = CAST(:channel AS channel_type)
-                        and ci.value = :value
+                          and ci.value = :value
                         limit 1
                     """),
                     {"channel": channel, "value": sender_value},
@@ -146,12 +147,24 @@ async def receive_webhook(request: Request, db: Session = Depends(get_db)):
                         identity_id = row2.identity_id
                         customer_id = row2.customer_id
 
-                # 4) Consent only if explicit keyword
+                # 4) Consent only if explicit keyword (ANTI-DUPE: only insert if not currently granted)
                 if text_msg.lower() in {"alta", "si", "si promos", "acepto"}:
                     db.execute(
                         text("""
-                            insert into consents (customer_id, channel, purpose, status, source)
-                            values (:customer_id, CAST(:channel AS channel_type), 'promotions', 'granted', 'ig_dm')
+                            insert into consents (customer_id, channel, purpose, status)
+                            select
+                              :customer_id,
+                              CAST(:channel AS channel_type),
+                              'promotions',
+                              'granted'
+                            where not exists (
+                              select 1
+                              from consents
+                              where customer_id = :customer_id
+                                and channel = CAST(:channel AS channel_type)
+                                and purpose = 'promotions'
+                                and status = 'granted'
+                            )
                         """),
                         {"customer_id": customer_id, "channel": channel},
                     )
