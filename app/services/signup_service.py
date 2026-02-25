@@ -61,6 +61,7 @@ def create_signup(db: Session, data) -> tuple[str, str]:
         ).scalar_one()
 
         # 3) Create email identity
+        print ("About to insert:", customer_id, email)
         identity_id = db.execute(
             text("""
                 insert into customer_identities (customer_id, channel, value, is_primary)
