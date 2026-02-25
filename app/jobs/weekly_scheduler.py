@@ -22,7 +22,8 @@ def queue_weekly_promo(db, template_key="weekly_promo_v1", scheduled_for=None):
 
     campaign_id = "00000000-0000-0000-0000-000000000000"  # keep yours if you have one
 
-    result = db.execute(text("""
+    result = db.execute(
+    text("""
         with latest_consent as (
           select distinct on (customer_id, channel, purpose)
             customer_id, channel, purpose, status
@@ -32,22 +33,24 @@ def queue_weekly_promo(db, template_key="weekly_promo_v1", scheduled_for=None):
           order by customer_id, channel, purpose, created_at desc
         ),
         email_identity as (
-          -- pick the primary email identity if multiple exist
+          -- pick one email identity per customer (prefer primary)
           select distinct on (ci.customer_id)
             ci.customer_id,
             ci.id as identity_id,
             ci.value as email
           from customer_identities ci
           where ci.channel = 'email'::channel_type
-          order by ci.customer_id, ci.is_primary desc, ci.created_at asc
+          order by ci.customer_id, ci.is_primary desc, ci.id asc
         ),
         interests as (
+          -- interests stored as customer_attributes(key='interests', value jsonb array)
           select
-            ci.customer_id,
-            coalesce(jsonb_agg(ci2.interest_key order by ci2.interest_key), '[]'::jsonb) as interests
-          from customers ci
-          left join customer_interests ci2 on ci2.customer_id = ci.id
-          group by ci.customer_id
+            c.id as customer_id,
+            coalesce(ca.value, '[]'::jsonb) as interests
+          from customers c
+          left join customer_attributes ca
+            on ca.customer_id = c.id
+           and ca.key = 'interests'
         ),
         eligible as (
           select
@@ -81,11 +84,13 @@ def queue_weekly_promo(db, template_key="weekly_promo_v1", scheduled_for=None):
         from eligible e
         on conflict (customer_id, channel, template_key, scheduled_for) do nothing
         returning id
-    """), {
+    """),
+    {
         "campaign_id": campaign_id,
         "template_key": template_key,
         "scheduled_for": scheduled_for,
-    })
+    },
+)
 
     inserted = result.fetchall()
     return {"inserted": len(inserted)}
