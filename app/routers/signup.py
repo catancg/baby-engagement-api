@@ -1,19 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from sqlalchemy.exc import IntegrityError
-
 from app.db.session import get_db
-from app.schemas.signup import SignupIn, SignupOut
+from app.schemas.signup import SignupRequest
 from app.services.signup_service import create_signup
 
-router = APIRouter()
+router = APIRouter(tags=["signup"])
 
-@router.post("/signup", response_model=SignupOut)
-def signup(payload: SignupIn, db: Session = Depends(get_db)):
-    try:
-        customer_id, identity_id = create_signup(db, payload)
-        return {"customer_id": customer_id, "identity_id": identity_id}
-    except IntegrityError:
-        db.rollback()
-        # Most likely: same (channel,value) already exists due to unique constraint
-        raise HTTPException(status_code=409, detail="Identity already exists for that channel.")
+@router.post("/signup")
+def signup(payload: SignupRequest, db: Session = Depends(get_db)):
+    customer_id, identity_id = create_signup(db, payload)
+    return {"ok": True, "customer_id": str(customer_id), "identity_id": str(identity_id)}

@@ -19,30 +19,38 @@ TEST_TO_EMAIL = os.getenv("TEST_TO_EMAIL", "").strip()
 DRY_RUN_SEEN = set()
 DRY_RUN_SLEEP_SECONDS = int(os.getenv("DRY_RUN_SLEEP_SECONDS", "10"))
 def render_email(template_key: str, payload: dict) -> tuple[str, str]:
-    # payload will contain dynamic values (like email later)
-
-    email = payload.get("email", "")
-
     if template_key == "weekly_promo_v1":
         subject = "Beneficios exclusivos para vos en Pika Pika 🎁"
 
-        body = f"""¡Hola! 👋
+        name = (payload.get("name") or "").strip()
+        email = (payload.get("email") or "").strip()
+        interests = payload.get("interests") or []
 
-Esta semana tenemos beneficios especiales pensados para vos y tu bebé 💕
+        # Nice, optional interest line
+        interest_map = {
+            "baby_items": "artículos para bebé",
+            "toys": "juguetes",
+            "cochesitos": "cochesitos",
+            "cunas": "cunas",
+        }
+        picked = [interest_map.get(i, i) for i in interests]
+        interest_line = ""
+        if picked:
+            interest_line = "🧸 En base a tus intereses (" + ", ".join(picked) + "), te preparamos recomendaciones y promos.\n\n"
 
-🎁 Presentando este email en el local accedés a descuentos exclusivos
-y recomendaciones personalizadas según la etapa de tu bebé.
+        hi = f"¡Hola {name}! 👋\n\n" if name else "¡Hola! 👋\n\n"
 
-Nos encanta recibirte, ayudarte a elegir y que puedas ver los productos en persona.
-¡Te esperamos en la tienda!
-
-📍 Podés pasar cuando quieras dentro del horario habitual.
-
-— — — — — — — — — — — — — — — —
-Si preferís no recibir más mensajes, podés darte de baja acá:
-f"{BASE_URL}/unsubscribe?channel=email&value={email}"
-"""
-
+        body = (
+            hi
+            + "Esta semana tenemos beneficios especiales pensados para vos y tu bebé 💕\n\n"
+            + interest_line
+            + "🎁 Presentando este email en el local accedés a descuentos exclusivos\n"
+            + "y recomendaciones personalizadas.\n\n"
+            + "¡Te esperamos en la tienda!\n\n"
+            + "— — — — — — — — — — — — — — — — —\n"
+            + "Si preferís no recibir más mensajes, podés darte de baja acá:\n"
+            + f"https://baby-engagement-api.onrender.com/unsubscribe?channel=email&value={email}\n"
+        )
         return subject, body
 
     return "Novedades", "Hola!"

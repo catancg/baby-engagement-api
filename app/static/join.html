@@ -8,34 +8,51 @@
     body { font-family: Arial; max-width: 420px; margin: 40px auto; }
     input, select, button {
       width: 100%; padding: 12px; margin-top: 12px; font-size: 16px;
+      box-sizing: border-box;
     }
     button { background:#ff7aa8; color:white; border:none; border-radius:8px; }
+    .section-title { margin-top: 18px; font-weight: 700; }
+    .checks { margin-top: 8px; }
+    .check-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; margin-top: 10px;
+      border: 1px solid #eee; border-radius: 10px;
+    }
+    .check-row input { width: auto; margin: 0; }
+    .muted { color:#666; font-size: 13px; margin-top: 8px; }
   </style>
 </head>
 <body>
 
 <h2>Unite a nuestra comunidad 🎁</h2>
-<p>Recibi promociones especiales y regalos</p>
+<p>Recibí promociones especiales y regalos</p>
 
 <form id="form">
-  <input placeholder="Tu Nombre" name="first_name" required />
+  <input placeholder="Tu Nombre" name="name" required />
 
-  <select name="channel">
-    <option value="email">Email</option>
-    <option value="whatsapp">WhatsApp</option>
-    <option value="instagram">Instagram</option>
-  </select>
+  <input placeholder="Ingresá tu email (ejemplo@gmail.com)" name="email" type="email" required />
 
-  <input placeholder="Email or phone or @username" name="value" required />
+  <div class="section-title">¿Qué te interesa?</div>
+  <div class="checks">
+    <label class="check-row">
+      <input type="checkbox" name="interests" value="baby_items" />
+      Artículos para bebé
+    </label>
+    <label class="check-row">
+      <input type="checkbox" name="interests" value="toys" />
+      Juguetes
+    </label>
+    <label class="check-row">
+      <input type="checkbox" name="interests" value="cochesitos" />
+      Cochesitos
+    </label>
+    <label class="check-row">
+      <input type="checkbox" name="interests" value="cunas" />
+      Cunas
+    </label>
+  </div>
 
-  <select name="Edad del bebe">
-    <option value="">Baby stage</option>
-    <option value="En embarazo">Pregnant</option>
-    <option value="0_6 meses">0–6 months</option>
-    <option value="6_12 meses">6–12 months</option>
-    <option value="1_3 años">1–3 years</option>
-    <option value="3 años o mas">3+ years</option>
-  </select>
+  <p class="muted">Podés elegir más de una opción.</p>
 
   <button>Unite</button>
 </form>
@@ -44,57 +61,40 @@
 
 <script>
 const form = document.getElementById("form");
-const channelSelect = document.querySelector('select[name="channel"]');
-const valueInput = document.querySelector('input[name="value"]');
 const msg = document.getElementById("msg");
-
-function updatePlaceholder() {
-  const channel = channelSelect.value;
-
-  if (channel === "email") {
-    valueInput.placeholder = "Ingresá tu email (ejemplo@gmail.com)";
-    valueInput.type = "email";
-  } else if (channel === "whatsapp") {
-    valueInput.placeholder = "Ingresá tu WhatsApp (ej: 3446456789)";
-    valueInput.type = "tel";
-  } else if (channel === "instagram") {
-    valueInput.placeholder = "Tu usuario de Instagram (@usuario)";
-    valueInput.type = "text";
-  }
-}
-
-// run once on load
-updatePlaceholder();
-
-// update when selection changes
-channelSelect.addEventListener("change", updatePlaceholder);
 
 form.onsubmit = async (e) => {
   e.preventDefault();
 
-  const data = Object.fromEntries(new FormData(form).entries());
-  data.consent_promotions = true;
+  const fd = new FormData(form);
 
-  // optional: normalize instagram handle (store without @)
-  if (data.channel === "instagram") {
-    data.value = data.value.trim().replace(/^@+/, "");
-  } else {
-    data.value = data.value.trim();
-  }
+  const name = (fd.get("name") || "").toString().trim();
+  const email = (fd.get("email") || "").toString().trim();
+
+  // collect multiple checkbox values
+  const interests = fd.getAll("interests").map(v => v.toString());
+
+  const payload = {
+    name,
+    email,
+    interests,
+    consent_promotions: true
+  };
 
   const res = await fetch("/signup", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data)
+    body: JSON.stringify(payload)
   });
 
   if (res.ok) {
-    msg.innerText = "Ya sos parte! 🎉";
+    msg.innerText = "¡Ya sos parte! 🎉";
     form.reset();
-    updatePlaceholder(); // because reset sets channel back to first option
   } else {
     const text = await res.text();
-    msg.innerText = `Error (${res.status}): ${text}`;
+    msg.innerText = `Ocurrió un error. Probá nuevamente. (${res.status})`;
+    // If you want more debug:
+    // msg.innerText = `Error (${res.status}): ${text}`;
   }
 };
 </script>

@@ -3,54 +3,120 @@ from sqlalchemy import text
 from datetime import datetime, timezone
 
 from app.schemas.signup import SignupIn
+ALLOWED_INTERESTS = {"baby_items", "toys", "cochesitos", "cunas"}
 
-def create_signup(db: Session, data: SignupIn) -> tuple[str, str]:
-    # 1) Create customer
-    customer_id = db.execute(
+
+def create_signup(db: Session, data) -> tuple[str, str]:
+    """
+    Creates/ensures:
+      - customer row
+      - email identity row (channel=email)
+      - consent granted for promotions (no repeated 'granted' spam)
+      - customer_interests rows
+    """
+    name = data.name.strip()
+    email = data.email.strip().lower()
+    interests = [i for i in (data.interests or []) if i in ALLOWED_INTERESTS]
+
+    # 0) start tx
+    # (If you're already wrapping commit/rollback outside, keep consistent.)
+    # Here we assume router/service commits elsewhere OR you commit here.
+    # We'll not commit here to match your style: db.commit() outside.
+    # If you want it self-contained, add db.commit() at the end.
+
+    # 1) Find existing email identity (prevents duplicate customers)
+    row = db.execute(
         text("""
-            insert into customers (first_name, source)
-            values (:first_name, 'qr')
-            returning id
+            select ci.id as identity_id, ci.customer_id
+            from customer_identities ci
+            where ci.channel = 'email'::channel_type
+              and ci.value = :email
+            limit 1
         """),
-        {"first_name": data.first_name.strip()},
-    ).scalar_one()
+        {"email": email},
+    ).first()
 
-    # 2) Create identity
-    identity_id = db.execute(
-        text("""
-            insert into customer_identities (customer_id, channel, value, is_primary)
-            values (:customer_id, CAST(:channel AS channel_type), :value, true)
-            returning id
-        """),
-        {"customer_id": customer_id, "channel": data.channel, "value": data.value.strip()},
-    ).scalar_one()
+    if row:
+        customer_id = row.customer_id
+        identity_id = row.identity_id
 
-    # 3) Consent
-    if data.consent_promotions:
+        # Optional: update customer's name if it was a placeholder before
         db.execute(
             text("""
-                insert into consents (customer_id, channel, purpose, status, granted_at, proof)
-                values (:customer_id,
-                        CAST(:channel AS channel_type),
-                        'promotions'::consent_purpose,
-                        'granted'::consent_status,
-                        now(),
-                        jsonb_build_object('method','qr_form','version','v1'))
+                update customers
+                set first_name = :name, updated_at = now()
+                where id = :customer_id
             """),
-            {"customer_id": customer_id, "channel": data.channel},
+            {"name": name, "customer_id": customer_id},
         )
+    else:
+        # 2) Create customer
+        customer_id = db.execute(
+            text("""
+                insert into customers (first_name)
+                values (:name)
+                returning id
+            """),
+            {"name": name},
+        ).scalar_one()
 
-    # 4) Baby stage attribute (optional)
-    if data.baby_stage:
+        # 3) Create email identity
+        identity_id = db.execute(
+            text("""
+                insert into customer_identities (customer_id, channel, value, is_primary)
+                values (:customer_id, 'email'::channel_type, :email, true)
+                on conflict (channel, value) do nothing
+                returning id
+            """),
+            {"customer_id": customer_id, "email": email},
+        ).scalar_one_or_none()
+
+        # Race safety: if conflict happened, fetch the identity
+        if identity_id is None:
+            row2 = db.execute(
+                text("""
+                    select ci.id as identity_id, ci.customer_id
+                    from customer_identities ci
+                    where ci.channel = 'email'::channel_type
+                      and ci.value = :email
+                    limit 1
+                """),
+                {"email": email},
+            ).first()
+            if not row2:
+                raise RuntimeError("Identity insert race: could not fetch existing email identity")
+            identity_id = row2.identity_id
+            customer_id = row2.customer_id
+
+    # 4) Consent: insert granted only if NOT currently granted
+    if getattr(data, "consent_promotions", True):
         db.execute(
             text("""
-                insert into customer_attributes (customer_id, key, value)
-                values (:customer_id, 'baby_stage', to_jsonb(CAST(:stage AS text)))
-                on conflict (customer_id, key) do update
-                set value = excluded.value, updated_at = now()
+                insert into consents (customer_id, channel, purpose, status)
+                select :customer_id, 'email'::channel_type, 'promotions', 'granted'
+                where not exists (
+                    select 1
+                    from consents
+                    where customer_id = :customer_id
+                      and channel = 'email'::channel_type
+                      and purpose = 'promotions'
+                      and status = 'granted'
+                )
             """),
-            {"customer_id": customer_id, "stage": data.baby_stage},
+            {"customer_id": customer_id},
         )
 
-    db.commit()
-    return str(customer_id), str(identity_id)
+    # 5) Interests: upsert rows into customer_interests
+    # (One email/week strategy: we store interests, scheduler will use them in payload.)
+    if interests:
+        for k in interests:
+            db.execute(
+                text("""
+                    insert into customer_interests (customer_id, interest_key)
+                    values (:customer_id, :interest_key)
+                    on conflict (customer_id, interest_key) do nothing
+                """),
+                {"customer_id": customer_id, "interest_key": k},
+            )
+
+    return customer_id, identity_id

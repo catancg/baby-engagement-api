@@ -16,51 +16,50 @@ def next_monday_utc_at(hour_utc: int) -> datetime:
     return candidate
 
 
-def queue_weekly_promo(db: Session):
-    """
-    Queues one weekly promo email per customer who:
-      - has an email identity
-      - has latest promotions consent = granted
-    """
+def queue_weekly_promo(db, template_key="weekly_promo_v1", scheduled_for=None):
+    if scheduled_for is None:
+        scheduled_for = datetime.now(timezone.utc)
 
-    # schedule time: "now" (or choose next Monday 10:00 etc.)
-    scheduled_for = next_monday_utc_at(WEEKLY_SEND_HOUR_UTC)
+    campaign_id = "00000000-0000-0000-0000-000000000000"  # keep yours if you have one
 
-    # Find an active weekly email campaign
-    campaign = db.execute(text("""
-        select id, template_key
-        from campaigns
-        where is_active = true
-          and type = 'weekly_promo'
-          and channel = 'email'
-        limit 1
-    """)).fetchone()
-
-    if not campaign:
-        return {"queued": 0, "reason": "No active weekly_promo email campaign"}
-
-    campaign_id, template_key = campaign[0], campaign[1]
-
-    # Insert into outbox using latest consent = granted (audit log style)
-    # We dedupe via uq_outbox_dedupe index.
     result = db.execute(text("""
         with latest_consent as (
           select distinct on (customer_id, channel, purpose)
             customer_id, channel, purpose, status
           from consents
           where purpose = 'promotions'
-            and channel = 'email'
+            and channel = 'email'::channel_type
           order by customer_id, channel, purpose, created_at desc
         ),
+        email_identity as (
+          -- pick the primary email identity if multiple exist
+          select distinct on (ci.customer_id)
+            ci.customer_id,
+            ci.id as identity_id,
+            ci.value as email
+          from customer_identities ci
+          where ci.channel = 'email'::channel_type
+          order by ci.customer_id, ci.is_primary desc, ci.created_at asc
+        ),
+        interests as (
+          select
+            ci.customer_id,
+            coalesce(jsonb_agg(ci2.interest_key order by ci2.interest_key), '[]'::jsonb) as interests
+          from customers ci
+          left join customer_interests ci2 on ci2.customer_id = ci.id
+          group by ci.customer_id
+        ),
         eligible as (
-          select c.id as customer_id, ci.id as identity_id
+          select
+            c.id as customer_id,
+            ei.identity_id,
+            ei.email,
+            c.first_name as name,
+            it.interests
           from customers c
-          join customer_identities ci
-            on ci.customer_id = c.id
-           and ci.channel = 'email'
-          join latest_consent lc
-            on lc.customer_id = c.id
-           and lc.status = 'granted'
+          join email_identity ei on ei.customer_id = c.id
+          join latest_consent lc on lc.customer_id = c.id and lc.status = 'granted'
+          join interests it on it.customer_id = c.id
         )
         insert into message_outbox (
           campaign_id, customer_id, channel, to_identity_id,
@@ -72,7 +71,11 @@ def queue_weekly_promo(db: Session):
           'email'::channel_type,
           e.identity_id,
           :template_key,
-          '{}'::jsonb,
+          jsonb_build_object(
+            'name', e.name,
+            'email', e.email,
+            'interests', e.interests
+          ),
           :scheduled_for,
           'queued'::outbox_status
         from eligible e
@@ -84,6 +87,5 @@ def queue_weekly_promo(db: Session):
         "scheduled_for": scheduled_for,
     })
 
-    queued = len(result.fetchall())
-    db.commit()
-    return {"queued": queued, "scheduled_for": scheduled_for.isoformat()}
+    inserted = result.fetchall()
+    return {"inserted": len(inserted)}
