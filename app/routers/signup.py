@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import text
 from fastapi import HTTPException
 from app.db.session import get_db
-from app.schemas.signup import SignupRequest
+from app.schemas.signup import SignupRequest, validate_mx
 from app.services.signup_service import create_signup
 import json
 
@@ -25,7 +25,7 @@ def signup(payload: SignupRequest, db: Session = Depends(get_db)):
 
         print("SIGNUP PAYLOAD:", payload.model_dump())
 
-        
+        validate_mx(payload.email)
 
         # 1) customer
         customer_id = db.execute(

@@ -1,5 +1,7 @@
 from pydantic import BaseModel, Field, EmailStr
 from typing import Literal, Optional, List
+import dns.resolver
+from fastapi import HTTPException
 
 Channel = Literal["email", "instagram", "whatsapp", "sms"]
 BabyStage = Literal["pregnant", "0_6m", "6_12m", "1_3y", "3y_plus"]
@@ -19,3 +21,10 @@ class SignupRequest(BaseModel):
 class SignupOut(BaseModel):
     customer_id: str
     identity_id: str
+
+def validate_mx(email: str):
+    domain = email.split("@")[1]
+    try:
+        dns.resolver.resolve(domain, "MX")
+    except Exception:
+        raise HTTPException(status_code=400, detail="Email domain not valid")
