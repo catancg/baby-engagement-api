@@ -1,3 +1,5 @@
+
+import os
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session
@@ -23,9 +25,9 @@ def preview_email(request: Request):
 
     # Construimos BASE_URL dinámicamente
     base_url = str(request.base_url).rstrip("/")
+    print(base_url)
 
     logo_url = f"{base_url}/static/logo.png"
-
     template_path = Path("app/templates/pika_pika_weekly.html")
 
     with open(template_path, "r", encoding="utf-8") as f:
