@@ -90,6 +90,43 @@ def admin_recent_customers(
 
     return {"items": rows}
 
+@router.get("/customers/interests", dependencies=[Depends(require_admin_key)])
+def customers_interests(
+    limit: int = Query(default=500, ge=1, le=2000),
+    db: Session = Depends(get_db),
+):
+    counts = db.execute(text("""
+        select interest_key, count(*) as customer_count
+        from customer_interests
+        group by interest_key
+        order by customer_count desc
+    """)).mappings().all()
+
+    rows = db.execute(text("""
+        select
+          c.id,
+          c.first_name,
+          ci.value as email,
+          c.created_at,
+          coalesce(
+            array_agg(ki.interest_key order by ki.interest_key)
+            filter (where ki.interest_key is not null),
+            '{}'
+          ) as interests
+        from customers c
+        left join customer_identities ci on ci.customer_id = c.id and ci.channel = 'email'
+        left join customer_interests ki on ki.customer_id = c.id
+        group by c.id, c.first_name, ci.value, c.created_at
+        order by c.created_at desc
+        limit :limit
+    """), {"limit": limit}).mappings().all()
+
+    return {
+        "interest_counts": [dict(r) for r in counts],
+        "customers": [dict(r) for r in rows],
+    }
+
+
 @router.get("/debug/identity", dependencies=[Depends(require_admin_key)])
 def admin_debug_identity(
     channel: str = Query(...),

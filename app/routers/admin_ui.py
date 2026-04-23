@@ -192,3 +192,225 @@ def admin_ui(key: str | None = Query(default=None),
 </html>
 """
     return HTMLResponse(content=html)
+
+
+@router.get("/ui/customers", response_class=HTMLResponse)
+def admin_ui_customers(
+    key: str | None = Query(default=None),
+    x_admin_key: str | None = Header(default=None),
+):
+    admin_key = key or x_admin_key
+    require_admin_key(admin_key)
+
+    html = f"""
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Clientes — Pika Pika Admin</title>
+  <style>
+    * {{ box-sizing: border-box; }}
+    body {{ font-family: system-ui, Arial; margin: 0; padding: 20px; background: #f8f9fa; color: #222; }}
+    h2 {{ margin: 0 0 4px; }}
+    .nav {{ margin-bottom: 16px; font-size: 13px; }}
+    .nav a {{ color: #555; text-decoration: none; }}
+    .nav a:hover {{ text-decoration: underline; }}
+    .summary-row {{ display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }}
+    .stat-card {{
+      background: #fff; border: 1px solid #e0e0e0; border-radius: 10px;
+      padding: 14px 20px; min-width: 130px; text-align: center;
+    }}
+    .stat-card .num {{ font-size: 32px; font-weight: 700; line-height: 1; }}
+    .stat-card .lbl {{ font-size: 12px; color: #666; margin-top: 4px; text-transform: uppercase; letter-spacing: .5px; }}
+    .stat-card.total {{ border-color: #aaa; }}
+    .controls {{ display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; align-items: center; }}
+    input[type=search] {{ padding: 8px 12px; font-size: 14px; border: 1px solid #ccc; border-radius: 6px; width: 280px; }}
+    select {{ padding: 8px; font-size: 14px; border: 1px solid #ccc; border-radius: 6px; }}
+    .tbl-wrap {{ background: #fff; border: 1px solid #e0e0e0; border-radius: 10px; overflow: auto; }}
+    table {{ width: 100%; border-collapse: collapse; font-size: 14px; }}
+    thead th {{ background: #fafafa; border-bottom: 2px solid #e0e0e0; padding: 10px 12px; text-align: left; font-weight: 600; white-space: nowrap; cursor: pointer; user-select: none; }}
+    thead th:hover {{ background: #f0f0f0; }}
+    tbody tr:hover {{ background: #f5f8ff; }}
+    td {{ padding: 9px 12px; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }}
+    .badge {{
+      display: inline-block; font-size: 11px; font-weight: 600;
+      padding: 2px 8px; border-radius: 12px; margin: 2px 2px 2px 0;
+      white-space: nowrap;
+    }}
+    .b-baby_items  {{ background: #dbeafe; color: #1e40af; }}
+    .b-toys        {{ background: #fef9c3; color: #854d0e; }}
+    .b-cochesitos  {{ background: #dcfce7; color: #166534; }}
+    .b-cunas       {{ background: #fce7f3; color: #9d174d; }}
+    .b-other       {{ background: #f3f4f6; color: #374151; }}
+    .muted {{ color: #888; font-size: 13px; }}
+    .error {{ color: #b00020; }}
+    #count-info {{ font-size: 13px; color: #555; }}
+    .sort-arrow {{ font-size: 10px; margin-left: 4px; }}
+  </style>
+</head>
+<body>
+  <div class="nav"><a href="/admin/ui?key={admin_key}">← Admin principal</a></div>
+  <h2>Clientes &amp; Intereses — Pika Pika</h2>
+
+  <div class="summary-row" id="summaryRow">
+    <div class="stat-card total">
+      <div class="num" id="statTotal">—</div>
+      <div class="lbl">Total clientes</div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <input type="search" id="searchBox" placeholder="Buscar por nombre o email…" oninput="applyFilter()" />
+    <select id="filterInterest" onchange="applyFilter()">
+      <option value="">Todos los intereses</option>
+      <option value="baby_items">baby_items</option>
+      <option value="toys">toys</option>
+      <option value="cochesitos">cochesitos</option>
+      <option value="cunas">cunas</option>
+      <option value="__none__">Sin intereses</option>
+    </select>
+    <span id="count-info"></span>
+  </div>
+
+  <div id="errorBox" class="error"></div>
+
+  <div class="tbl-wrap">
+    <table id="custTable">
+      <thead>
+        <tr>
+          <th onclick="sortBy('first_name')">Nombre <span class="sort-arrow" id="arr-first_name"></span></th>
+          <th onclick="sortBy('email')">Email <span class="sort-arrow" id="arr-email"></span></th>
+          <th onclick="sortBy('created_at')">Registro <span class="sort-arrow" id="arr-created_at"></span></th>
+          <th>Intereses</th>
+        </tr>
+      </thead>
+      <tbody id="custBody">
+        <tr><td colspan="4" class="muted">Cargando...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+<script>
+  const ADMIN_KEY = "{admin_key}";
+  let allCustomers = [];
+  let sortKey = "created_at";
+  let sortAsc = false;
+
+  const INTEREST_LABELS = {{
+    baby_items: "Baby Items",
+    toys: "Juguetes",
+    cochesitos: "Cochesitos",
+    cunas: "Cunas",
+  }};
+
+  async function load() {{
+    try {{
+      const res = await fetch("/admin/customers/interests?limit=500", {{
+        headers: {{ "x-admin-key": ADMIN_KEY }}
+      }});
+      if (!res.ok) throw new Error(`HTTP ${{res.status}}`);
+      const data = await res.json();
+
+      // Summary cards
+      const total = data.customers.length;
+      document.getElementById("statTotal").textContent = total;
+      const row = document.getElementById("summaryRow");
+      const COLORS = {{
+        baby_items: "#dbeafe", toys: "#fef9c3",
+        cochesitos: "#dcfce7", cunas: "#fce7f3"
+      }};
+      for (const c of data.interest_counts) {{
+        const card = document.createElement("div");
+        card.className = "stat-card";
+        card.style.borderColor = COLORS[c.interest_key] || "#e0e0e0";
+        card.innerHTML = `<div class="num">${{c.customer_count}}</div><div class="lbl">${{INTEREST_LABELS[c.interest_key] || c.interest_key}}</div>`;
+        row.appendChild(card);
+      }}
+
+      allCustomers = data.customers;
+      applyFilter();
+    }} catch(e) {{
+      document.getElementById("errorBox").textContent = "Error: " + e.message;
+      document.getElementById("custBody").innerHTML = "";
+    }}
+  }}
+
+  function applyFilter() {{
+    const q = document.getElementById("searchBox").value.toLowerCase();
+    const fi = document.getElementById("filterInterest").value;
+
+    let list = allCustomers.filter(c => {{
+      if (q) {{
+        const name = (c.first_name || "").toLowerCase();
+        const email = (c.email || "").toLowerCase();
+        if (!name.includes(q) && !email.includes(q)) return false;
+      }}
+      if (fi === "__none__") return !c.interests || c.interests.length === 0;
+      if (fi) return c.interests && c.interests.includes(fi);
+      return true;
+    }});
+
+    list = sortList(list);
+    renderTable(list);
+    document.getElementById("count-info").textContent =
+      list.length === allCustomers.length
+        ? `${{list.length}} clientes`
+        : `${{list.length}} de ${{allCustomers.length}} clientes`;
+  }}
+
+  function sortList(list) {{
+    return [...list].sort((a, b) => {{
+      let va = a[sortKey] ?? "";
+      let vb = b[sortKey] ?? "";
+      if (typeof va === "string") va = va.toLowerCase();
+      if (typeof vb === "string") vb = vb.toLowerCase();
+      if (va < vb) return sortAsc ? -1 : 1;
+      if (va > vb) return sortAsc ? 1 : -1;
+      return 0;
+    }});
+  }}
+
+  function sortBy(key) {{
+    if (sortKey === key) {{ sortAsc = !sortAsc; }}
+    else {{ sortKey = key; sortAsc = true; }}
+    ["first_name", "email", "created_at"].forEach(k => {{
+      document.getElementById("arr-" + k).textContent =
+        k === sortKey ? (sortAsc ? "▲" : "▼") : "";
+    }});
+    applyFilter();
+  }}
+
+  function renderTable(list) {{
+    const tbody = document.getElementById("custBody");
+    if (!list.length) {{
+      tbody.innerHTML = `<tr><td colspan="4" class="muted">Sin resultados.</td></tr>`;
+      return;
+    }}
+    tbody.innerHTML = list.map(c => {{
+      const interests = (c.interests || []);
+      const badges = interests.length
+        ? interests.map(i => `<span class="badge b-${{i}}">${{INTEREST_LABELS[i] || i}}</span>`).join("")
+        : `<span class="muted">—</span>`;
+      const date = c.created_at ? c.created_at.substring(0, 10) : "—";
+      return `<tr>
+        <td>${{escHtml(c.first_name || "")}}</td>
+        <td class="muted">${{escHtml(c.email || "")}}</td>
+        <td class="muted">${{date}}</td>
+        <td>${{badges}}</td>
+      </tr>`;
+    }}).join("");
+  }}
+
+  function escHtml(s) {{
+    return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  }}
+
+  // default sort arrow
+  document.getElementById("arr-created_at").textContent = "▼";
+  load();
+</script>
+</body>
+</html>
+"""
+    return HTMLResponse(content=html)
