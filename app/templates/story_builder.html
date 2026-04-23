@@ -343,6 +343,12 @@
       </div>
     </div>
 
+    <div class="ctrl-sec" id="logoSizeSection">
+      <div class="ctrl-label">Tamaño del logo <span id="logoSizeVal" style="color:#e2b96f;font-weight:800">160px</span></div>
+      <input type="range" id="logoSizeSlider" min="60" max="320" step="10" value="160"
+        style="width:100%;accent-color:#e2b96f;cursor:pointer" />
+    </div>
+
   </div>
 
   <div class="ctrl-footer">
@@ -361,7 +367,7 @@
 <script>
 const S = {
   photo: null, layout: 'fullbleed', color: '#E8A045',
-  showLogo: true, textSize: 'md', textAlign: 'center',
+  showLogo: true, logoSize: 160, textSize: 'md', textAlign: 'center',
   fontStyle: 'elegant', pattern: 'none', border: 'none',
 };
 
@@ -428,12 +434,12 @@ function logoImg(styleStr) {
 // ── renderers ──
 function renderFullbleed(hl, sub, cta) {
   const bg = S.photo
-    ? `<img class="s-bg" src="${S.photo}" />`
+    ? `<div style="position:absolute;inset:0;background-image:url('${S.photo}');background-size:cover;background-position:center;"></div>`
     : `<div class="s-bg s-bg-empty" style="background:linear-gradient(145deg,${S.color},${S.color}99);"></div>`;
   storyFrame.innerHTML = `
     <div class="story s-fb">
       ${bg}<div class="s-gradient"></div>
-      ${logoImg(`width:${sz(180)}px;position:absolute;top:88px;left:50%;transform:translateX(-50%)`)}
+      ${logoImg(`width:${S.logoSize}px;position:absolute;top:88px;left:50%;transform:translateX(-50%)`)}
       <div class="s-bottom" style="text-align:${ta()}">
         ${hl  ? `<div style="font-family:${hf()};font-weight:${hfw()};font-size:${sz(108)}px;color:#fff;line-height:1.05;margin-bottom:${sz(34)}px;text-shadow:0 4px 28px rgba(0,0,0,.35)">${esc(hl)}</div>` : ''}
         ${sub ? `<div style="font-family:${bf()};font-size:${sz(52)}px;font-weight:600;color:rgba(255,255,255,.88);line-height:1.35;margin-bottom:${sz(58)}px">${esc(sub)}</div>` : ''}
@@ -445,13 +451,13 @@ function renderFullbleed(hl, sub, cta) {
 
 function renderSplit(hl, sub, cta) {
   const photo = S.photo
-    ? `<img src="${S.photo}" />`
+    ? `<div style="width:100%;height:100%;background-image:url('${S.photo}');background-size:cover;background-position:center;"></div>`
     : `<div class="s-photo-empty" style="background:${S.color}22"><span style="font-size:72px;opacity:.2">📷</span></div>`;
   storyFrame.innerHTML = `
     <div class="story s-sp">
       <div class="s-photo-top">${photo}</div>
       <div class="s-panel" style="background:${S.color};align-items:${ai()};text-align:${ta()}">
-        ${logoImg(`width:${sz(140)}px;display:block;margin-bottom:${sz(44)}px;position:relative;z-index:1`)}
+        ${logoImg(`width:${S.logoSize}px;display:block;margin-bottom:${sz(44)}px;position:relative;z-index:1`)}
         ${hl  ? `<div style="font-family:${hf()};font-weight:${hfw()};font-size:${sz(96)}px;color:#fff;line-height:1.08;margin-bottom:${sz(26)}px;position:relative;z-index:1">${esc(hl)}</div>` : ''}
         ${sub ? `<div style="font-family:${bf()};font-size:${sz(50)}px;font-weight:600;color:rgba(255,255,255,.85);line-height:1.3;margin-bottom:${sz(44)}px;position:relative;z-index:1">${esc(sub)}</div>` : ''}
         ${cta ? `<div style="font-family:${bf()};font-size:${sz(40)}px;font-weight:700;color:rgba(255,255,255,.62);position:relative;z-index:1">${esc(cta)}</div>` : ''}
@@ -461,15 +467,15 @@ function renderSplit(hl, sub, cta) {
 }
 
 function renderCard(hl, sub, cta) {
-  const bgBlur  = S.photo ? `<img class="s-bg-blur" src="${S.photo}" />` : `<div class="s-bg-color" style="background:${S.color};opacity:.55;"></div>`;
-  const cpPhoto = S.photo ? `<img src="${S.photo}" />` : `<div class="s-card-photo-empty" style="background:${S.color}22"><span style="font-size:72px;opacity:.3">📷</span></div>`;
+  const bgBlur  = S.photo ? `<div style="position:absolute;inset:-50px;width:calc(100% + 100px);height:calc(100% + 100px);background-image:url('${S.photo}');background-size:cover;background-position:center;filter:blur(52px) brightness(.32) saturate(1.4);"></div>` : `<div class="s-bg-color" style="background:${S.color};opacity:.55;"></div>`;
+  const cpPhoto = S.photo ? `<div style="width:100%;height:100%;background-image:url('${S.photo}');background-size:cover;background-position:center;"></div>` : `<div class="s-card-photo-empty" style="background:${S.color}22"><span style="font-size:72px;opacity:.3">📷</span></div>`;
   storyFrame.innerHTML = `
     <div class="story s-cd">
       ${bgBlur}
       <div class="s-card">
         <div class="s-card-photo">${cpPhoto}</div>
         <div class="s-card-body" style="align-items:${ai()};text-align:${ta()}">
-          ${logoImg(`width:${sz(110)}px;filter:brightness(0);margin-bottom:${sz(30)}px`)}
+          ${logoImg(`width:${S.logoSize}px;margin-bottom:${sz(30)}px`)}
           ${hl  ? `<div style="font-family:${hf()};font-weight:${hfw()};font-size:${sz(84)}px;color:#111827;line-height:1.1;margin-bottom:${sz(22)}px">${esc(hl)}</div>` : ''}
           ${sub ? `<div style="font-family:${bf()};font-size:${sz(44)}px;font-weight:600;color:#6b7280;line-height:1.35;margin-bottom:${sz(30)}px">${esc(sub)}</div>` : ''}
           ${cta ? `<div style="font-family:${bf()};font-size:${sz(36)}px;font-weight:700;color:${S.color}">${esc(cta)}</div>` : ''}
@@ -483,14 +489,14 @@ function renderQuote(hl, sub, cta) {
   const divAlign = ta() === 'right' ? 'margin:36px 0 36px auto' : ta() === 'center' ? 'margin:36px auto' : 'margin:36px 0';
   storyFrame.innerHTML = `
     <div class="story s-qt" style="background:linear-gradient(145deg,${S.color},${S.color}cc)">
-      ${S.photo ? `<img class="s-qt-bg" src="${S.photo}" />` : ''}
+      ${S.photo ? `<div style="position:absolute;inset:0;background-image:url('${S.photo}');background-size:cover;background-position:center;opacity:0.12;"></div>` : ''}
       <div class="s-qt-overlay" style="background:linear-gradient(145deg,rgba(0,0,0,.18),rgba(0,0,0,.34))"></div>
       <div class="s-qt-content" style="text-align:${ta()};align-items:${ai()}">
         <div class="s-qt-mark" style="font-size:${sz(180)}px">"</div>
         ${hl  ? `<div style="font-family:${hf()};font-weight:${hfw()};font-size:${sz(112)}px;color:#fff;line-height:1.06;margin-bottom:${sz(20)}px;text-shadow:0 4px 20px rgba(0,0,0,.25)">${esc(hl)}</div>` : ''}
         <div class="s-qt-divider" style="${divAlign}"></div>
         ${sub ? `<div style="font-family:${bf()};font-size:${sz(52)}px;font-weight:600;color:rgba(255,255,255,.82);line-height:1.35;margin-bottom:${sz(60)}px">${esc(sub)}</div>` : ''}
-        ${logoImg(`width:${sz(150)}px;display:inline-block`)}
+        ${logoImg(`width:${S.logoSize}px;display:inline-block`)}
         ${cta ? `<div style="font-family:${bf()};font-size:${sz(38)}px;font-weight:700;color:rgba(255,255,255,.58);margin-top:${sz(36)}px">${esc(cta)}</div>` : ''}
       </div>
       ${patternEl()}${borderEl()}
@@ -499,13 +505,13 @@ function renderQuote(hl, sub, cta) {
 
 function renderFrame(hl, sub, cta) {
   const bg = S.photo
-    ? `<img class="s-bg" src="${S.photo}" />`
+    ? `<div style="position:absolute;inset:0;background-image:url('${S.photo}');background-size:cover;background-position:center;"></div>`
     : `<div class="s-bg s-bg-empty" style="background:linear-gradient(145deg,${S.color},${S.color}88);"></div>`;
   storyFrame.innerHTML = `
     <div class="story s-fr">
       ${bg}<div class="s-overlay"></div>
       <div class="s-panel" style="align-items:${ai()};text-align:${ta()}">
-        ${logoImg(`width:${sz(110)}px;filter:brightness(0);margin-bottom:${sz(40)}px`)}
+        ${logoImg(`width:${S.logoSize}px;margin-bottom:${sz(40)}px`)}
         ${hl  ? `<div style="font-family:${hf()};font-weight:${hfw()};font-size:${sz(88)}px;color:#111827;line-height:1.1;margin-bottom:${sz(22)}px">${esc(hl)}</div>` : ''}
         ${sub ? `<div style="font-family:${bf()};font-size:${sz(46)}px;font-weight:600;color:#4b5563;line-height:1.35;margin-bottom:${sz(32)}px">${esc(sub)}</div>` : ''}
         ${cta ? `<div style="font-family:${bf()};font-size:${sz(38)}px;font-weight:700;color:${S.color}">${esc(cta)}</div>` : ''}
@@ -516,12 +522,12 @@ function renderFrame(hl, sub, cta) {
 
 function renderPoster(hl, sub, cta) {
   const photo = S.photo
-    ? `<img src="${S.photo}" />`
+    ? `<div style="width:100%;height:100%;background-image:url('${S.photo}');background-size:cover;background-position:center;"></div>`
     : `<div class="s-pt-photo-empty" style="background:${S.color}22"><span style="font-size:80px;opacity:.2">📷</span></div>`;
   storyFrame.innerHTML = `
     <div class="story s-pt">
       <div class="s-pt-top" style="background:${S.color}">
-        ${logoImg(`width:${sz(160)}px`)}
+        ${logoImg(`width:${S.logoSize}px`)}
       </div>
       <div class="s-pt-photo">${photo}</div>
       <div class="s-pt-bot" style="background:#1a1a2e;text-align:${ta()};align-items:${ai()}">
@@ -591,7 +597,16 @@ document.getElementById('patternSel').addEventListener('change', e => { S.patter
 document.getElementById('borderSel').addEventListener('change', e => { S.border = e.target.value; render(); });
 
 document.getElementById('logoToggle').addEventListener('click', function() {
-  S.showLogo = !S.showLogo; this.classList.toggle('on', S.showLogo); render();
+  S.showLogo = !S.showLogo;
+  this.classList.toggle('on', S.showLogo);
+  document.getElementById('logoSizeSection').style.opacity = S.showLogo ? '1' : '0.35';
+  render();
+});
+
+document.getElementById('logoSizeSlider').addEventListener('input', function() {
+  S.logoSize = parseInt(this.value);
+  document.getElementById('logoSizeVal').textContent = `${S.logoSize}px`;
+  render();
 });
 
 ['headline','subtext','ctaText'].forEach(id => document.getElementById(id).addEventListener('input', render));
@@ -627,9 +642,17 @@ document.addEventListener('keydown', e => { if (e.ctrlKey && e.key === 'Enter') 
 async function downloadPng() {
   const btn = document.getElementById('downloadBtn');
   btn.disabled = true; btn.textContent = '⏳ Generando...';
+
+  // Render into an off-screen div with no transform so html2canvas
+  // captures at the true 1080×1920 instead of the scaled preview size.
+  const offscreen = document.createElement('div');
+  offscreen.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:1080px;height:1920px;overflow:hidden;';
+  offscreen.innerHTML = storyFrame.innerHTML;
+  document.body.appendChild(offscreen);
+
   try {
     await document.fonts.ready;
-    const canvas = await html2canvas(storyFrame, {
+    const canvas = await html2canvas(offscreen, {
       width: 1080, height: 1920, scale: 1,
       useCORS: true, allowTaint: false, backgroundColor: null, logging: false,
     });
@@ -641,6 +664,7 @@ async function downloadPng() {
     console.error('[story-builder]', err);
     alert('No se pudo generar la imagen: ' + err.message);
   } finally {
+    document.body.removeChild(offscreen);
     btn.disabled = false; btn.textContent = '⬇ Descargar PNG 1080×1920';
   }
 }
