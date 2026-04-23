@@ -106,6 +106,32 @@ def render_email(template_key: str, payload: dict) -> tuple[str, str, str]:
         )
         return subject, text_body, html_body
 
+    if template_key == "welcome_v1":
+        name = payload.get("name", "")
+        subject = f"¡Te damos la bienvenida a Pika Pika, {name}! 🐣" if name else "¡Bienvenida/o a Pika Pika! 🐣"
+        logo_url = f"{base_url}/static/logo.png"
+        text_body = (
+            f"¡Hola {name}!\n\n"
+            "Nos alegra que te hayas sumado a Pika Pika, tu tienda de artículos para bebés y juguetes en Gualeguaychu.\n\n"
+            "A partir de ahora vas a recibir:\n"
+            "- Descuentos exclusivos para clientes registrados\n"
+            "- Novedades y nuevos productos\n"
+            "- Ofertas especiales\n\n"
+            f"WhatsApp: {WHATSAPP_URL}\n"
+            f"Instagram: {INSTAGRAM_URL}\n\n"
+            f"Si no querés recibir más correos:\n{unsubscribe_url}\n"
+        )
+        template = jinja_env.get_template("welcome_email.html")
+        html_body = template.render(
+            name=name,
+            logo_url=logo_url,
+            whatsapp_url=WHATSAPP_URL,
+            instagram_url=INSTAGRAM_URL,
+            instagram_handle=INSTAGRAM_HANDLE,
+            unsubscribe_url=unsubscribe_url,
+        )
+        return subject, text_body, html_body
+
     return "Novedades", "Hola!", "<p>Hola!</p>"
 
 

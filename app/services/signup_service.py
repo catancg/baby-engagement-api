@@ -17,6 +17,7 @@ def create_signup(db: Session, data) -> tuple[str, str]:
     name = data.name.strip()
     email = data.email.strip().lower()
     interests = [i for i in (data.interests or []) if i in ALLOWED_INTERESTS]
+    is_new_customer = False
 
     # 0) start tx
     # (If you're already wrapping commit/rollback outside, keep consistent.)
@@ -72,6 +73,7 @@ def create_signup(db: Session, data) -> tuple[str, str]:
         ).scalar_one_or_none()
 
         # Race safety: if conflict happened, fetch the identity
+        is_new_customer = identity_id is not None
         if identity_id is None:
             row2 = db.execute(
                 text("""
@@ -119,5 +121,23 @@ def create_signup(db: Session, data) -> tuple[str, str]:
                 """),
                 {"customer_id": customer_id, "interest_key": k},
             )
+
+    # 6) Welcome email for new customers only
+    if is_new_customer:
+        db.execute(
+            text("""
+                insert into message_outbox (
+                    customer_id, channel, to_identity_id,
+                    template_key, payload, scheduled_for
+                )
+                values (
+                    :customer_id, 'email'::channel_type, :identity_id,
+                    'welcome_v1',
+                    jsonb_build_object('name', :name, 'email', :email),
+                    now()
+                )
+            """),
+            {"customer_id": customer_id, "identity_id": identity_id, "name": name, "email": email},
+        )
 
     return customer_id, identity_id
