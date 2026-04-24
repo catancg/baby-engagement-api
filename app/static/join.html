@@ -4,100 +4,263 @@
   <meta charset="UTF-8" />
   <title>Pika Pika - Comunidad</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet" />
   <style>
-    body { font-family: Arial; max-width: 420px; margin: 40px auto; }
-    input, select, button {
-      width: 100%; padding: 12px; margin-top: 12px; font-size: 16px;
-      box-sizing: border-box;
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Nunito', Arial, sans-serif;
+      background: #F7FFF5;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
     }
-    button { background:#ff7aa8; color:white; border:none; border-radius:8px; }
-    .section-title { margin-top: 18px; font-weight: 700; }
-    .checks { margin-top: 8px; }
+
+    .card {
+      background: #fff;
+      border-radius: 24px;
+      padding: 36px 32px;
+      max-width: 440px;
+      width: 100%;
+      box-shadow: 0 4px 24px rgba(91,140,90,0.10);
+    }
+
+    .logo {
+      display: block;
+      margin: 0 auto 20px;
+      width: 150px;
+    }
+
+    .rainbow-bar {
+      height: 8px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #B8E986 0%, #A7D8FF 35%, #FFB3D9 70%, #FFE66D 100%);
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      font-size: 22px;
+      font-weight: 900;
+      color: #5B8C5A;
+      text-align: center;
+      line-height: 1.3;
+      margin-bottom: 6px;
+    }
+
+    .subtitle {
+      text-align: center;
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 24px;
+    }
+
+    label.field-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      color: #444;
+      margin-bottom: 6px;
+      margin-top: 16px;
+    }
+
+    input[type="text"],
+    input[type="email"] {
+      width: 100%;
+      padding: 12px 14px;
+      font-size: 15px;
+      font-family: inherit;
+      border: 1.5px solid #dde8dd;
+      border-radius: 12px;
+      background: #f9fdf9;
+      color: #222;
+      outline: none;
+      transition: border-color .2s;
+    }
+
+    input[type="text"]:focus,
+    input[type="email"]:focus {
+      border-color: #5B8C5A;
+      background: #fff;
+    }
+
+    .interests-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
     .check-row {
-      display: flex; align-items: center; gap: 10px;
-      padding: 10px 12px; margin-top: 10px;
-      border: 1px solid #eee; border-radius: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 11px 14px;
+      border: 1.5px solid #e8f0e8;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 700;
+      color: #444;
+      background: #f9fdf9;
+      transition: border-color .2s, background .2s;
+      user-select: none;
     }
-    .check-row input { width: auto; margin: 0; }
-    .muted { color:#666; font-size: 13px; margin-top: 8px; }
+
+    .check-row:hover { border-color: #5B8C5A; background: #eaf8ea; }
+
+    .check-row input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: #5B8C5A;
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+
+    .check-row.checked {
+      border-color: #5B8C5A;
+      background: #eaf8ea;
+    }
+
+    .hint { font-size: 12px; color: #888; margin-top: 8px; }
+
+    button[type="submit"] {
+      width: 100%;
+      padding: 14px;
+      margin-top: 24px;
+      font-family: inherit;
+      font-size: 16px;
+      font-weight: 900;
+      background: #5B8C5A;
+      color: #fff;
+      border: none;
+      border-radius: 25px;
+      cursor: pointer;
+      transition: background .2s, transform .1s;
+      letter-spacing: .3px;
+    }
+
+    button[type="submit"]:hover  { background: #4a7549; }
+    button[type="submit"]:active { transform: scale(.98); }
+    button[type="submit"]:disabled { background: #aaa; cursor: not-allowed; }
+
+    #msg {
+      text-align: center;
+      margin-top: 16px;
+      font-size: 15px;
+      font-weight: 700;
+      min-height: 22px;
+    }
+
+    #msg.success { color: #5B8C5A; }
+    #msg.error   { color: #c0392b; }
+
+    @media (max-width: 400px) {
+      .card { padding: 28px 18px; }
+      .interests-grid { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
-<h2>Pika Pika </h2>
-<h2>Unite a nuestra comunidad 🎁</h2>
-<p>Recibí promociones especiales y regalos</p>
+  <div class="card">
+    <img src="/static/logo.png" alt="Pika Pika" class="logo" />
+    <div class="rainbow-bar"></div>
 
-<form id="form">
-  <input placeholder="Tu Nombre" name="name" required />
+    <h1 id="heading">¡Unite a nuestra comunidad! 🎁</h1>
+    <p class="subtitle" id="subtitle">Recibí descuentos exclusivos, novedades y ofertas especiales.</p>
 
-  <input placeholder="Ingresá tu email (ejemplo@gmail.com)" name="email" type="email" required />
+    <form id="form" novalidate>
+      <label class="field-label" for="name">Tu nombre</label>
+      <input type="text" id="name" name="name" placeholder="Ej: María" required />
 
-  <div class="section-title">¿Qué te interesa?</div>
-  <div class="checks">
-    <label class="check-row">
-      <input type="checkbox" name="interests" value="baby_items" />
-      Artículos para bebé
-    </label>
-    <label class="check-row">
-      <input type="checkbox" name="interests" value="toys" />
-      Juguetes
-    </label>
-    <label class="check-row">
-      <input type="checkbox" name="interests" value="cochesitos" />
-      Cochesitos
-    </label>
-    <label class="check-row">
-      <input type="checkbox" name="interests" value="cunas" />
-      Cunas
-    </label>
+      <label class="field-label" for="email">Tu email</label>
+      <input type="email" id="email" name="email" placeholder="ejemplo@gmail.com" required />
+
+      <label class="field-label">¿Qué te interesa?</label>
+      <div class="interests-grid">
+        <label class="check-row">
+          <input type="checkbox" name="interests" value="baby_items" />
+          👶 Artículos para bebé
+        </label>
+        <label class="check-row">
+          <input type="checkbox" name="interests" value="toys" />
+          🧸 Juguetes
+        </label>
+        <label class="check-row">
+          <input type="checkbox" name="interests" value="cochesitos" />
+          🛒 Cochesitos
+        </label>
+        <label class="check-row">
+          <input type="checkbox" name="interests" value="cunas" />
+          🛏️ Cunas
+        </label>
+      </div>
+      <p class="hint">Podés elegir más de una opción.</p>
+
+      <button type="submit" id="btn">Unite</button>
+    </form>
+
+    <p id="msg"></p>
   </div>
 
-  <p class="muted">Podés elegir más de una opción.</p>
+  <script>
+    // Highlight checked rows
+    document.querySelectorAll('.check-row input[type="checkbox"]').forEach(cb => {
+      cb.addEventListener('change', () => {
+        cb.closest('.check-row').classList.toggle('checked', cb.checked);
+      });
+    });
 
-  <button>Unite</button>
-</form>
+    const form = document.getElementById('form');
+    const msg  = document.getElementById('msg');
+    const btn  = document.getElementById('btn');
 
-<p id="msg"></p>
+    form.onsubmit = async (e) => {
+      e.preventDefault();
+      msg.textContent = '';
+      msg.className = '';
 
-<script>
-const form = document.getElementById("form");
-const msg = document.getElementById("msg");
+      const fd = new FormData(form);
+      const name  = (fd.get('name')  || '').toString().trim();
+      const email = (fd.get('email') || '').toString().trim();
+      const interests = fd.getAll('interests').map(v => v.toString());
 
-form.onsubmit = async (e) => {
-  e.preventDefault();
+      if (!name || !email) {
+        msg.textContent = 'Por favor completá tu nombre y email.';
+        msg.className = 'error';
+        return;
+      }
 
-  const fd = new FormData(form);
+      btn.disabled = true;
+      btn.textContent = 'Enviando...';
 
-  const name = (fd.get("name") || "").toString().trim();
-  const email = (fd.get("email") || "").toString().trim();
+      try {
+        const res = await fetch('/signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, interests, consent_promotions: true })
+        });
 
-  // collect multiple checkbox values
-  const interests = fd.getAll("interests").map(v => v.toString());
-
-  const payload = {
-    name,
-    email,
-    interests,
-    consent_promotions: true
-  };
-
-  const res = await fetch("/signup", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
-  });
-
-  if (res.ok) {
-    msg.innerText = "¡Ya sos parte! 🎉";
-    form.reset();
-  } else {
-    const text = await res.text();
-    msg.innerText = `Ocurrió un error. Probá nuevamente. (${res.status})`;
-    // If you want more debug:
-    // msg.innerText = `Error (${res.status}): ${text}`;
-  }
-};
-</script>
-
+        form.style.display = 'none';
+        if (res.ok) {
+          document.getElementById('heading').textContent = '¡Gracias por unirte a nuestra comunidad! 🎁';
+          document.getElementById('subtitle').textContent = 'Ahora vas a recibir descuentos exclusivos, novedades y ofertas especiales.';
+        } else if (res.status === 409) {
+          document.getElementById('heading').textContent = '¡Gracias por unirte a nuestra comunidad! 🎁';
+          document.getElementById('subtitle').textContent = 'Ahora vas a recibir descuentos exclusivos, novedades y ofertas especiales.';
+          msg.textContent = '¡Ya estás suscripto/a a nuestra comunidad! 💛';
+          msg.className = 'success';
+        } else {
+          msg.textContent = 'Ocurrió un error. Por favor intentá de nuevo más tarde.';
+          msg.className = 'error';
+        }
+      } catch {
+        form.style.display = 'none';
+        msg.textContent = 'No se pudo conectar. Revisá tu conexión.';
+        msg.className = 'error';
+      }
+    };
+  </script>
 </body>
 </html>

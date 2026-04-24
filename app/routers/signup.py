@@ -18,8 +18,10 @@ logger = logging.getLogger(__name__)
 def signup(request: Request, payload: SignupRequest, db: Session = Depends(get_db)):
     try:
         validate_mx(payload.email)
-        customer_id, identity_id = create_signup(db, payload)
+        customer_id, identity_id, is_new = create_signup(db, payload)
         db.commit()
+        if not is_new:
+            raise HTTPException(status_code=409, detail="already_registered")
         return {"ok": True, "customer_id": str(customer_id), "identity_id": str(identity_id)}
     except HTTPException:
         raise
