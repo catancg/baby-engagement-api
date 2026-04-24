@@ -21,6 +21,7 @@ from app.routers.admin_ui import router as admin_ui_router
 from app.routers.meta_webhook import router as meta_webhook_router
 from app.routers.admin_variants import router as admin_variants_router
 from app.routers.story_builder import router as story_builder_router
+from app.routers.news_builder import router as news_builder_router
 
 Base.metadata.create_all(bind=engine, checkfirst=True)
 
@@ -41,6 +42,7 @@ app.include_router(admin_ui_router)
 app.include_router(meta_webhook_router)
 app.include_router(admin_variants_router)
 app.include_router(story_builder_router)
+app.include_router(news_builder_router)
 
 
 
