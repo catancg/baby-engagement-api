@@ -1,7 +1,7 @@
 import os
 import smtplib
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from email.message import EmailMessage
 from pathlib import Path
 
@@ -17,6 +17,19 @@ from app.db.session import get_db
 from app.models.email_variant import EmailVariant
 from app.models.send_approval import SendApproval
 from app.services.ai_copy_service import generate_variants
+
+
+def next_friday_art() -> datetime:
+    """Next Friday at 10:30 AM Argentina time (ART = UTC-3), returned as UTC datetime."""
+    now = datetime.now(timezone.utc)
+    days_ahead = (4 - now.weekday()) % 7  # 4 = Friday
+    if days_ahead == 0:
+        # Today is Friday — if 13:30 UTC (10:30 ART) already passed, use next week
+        if now.hour > 13 or (now.hour == 13 and now.minute >= 30):
+            days_ahead = 7
+    return (now + timedelta(days=days_ahead)).replace(
+        hour=13, minute=30, second=0, microsecond=0
+    )
 
 router = APIRouter(tags=["variants"])
 
@@ -418,6 +431,7 @@ def builder_queue(
         closing_message=closing_message, promo_image_url=promo_image_url,
     )
 
+    scheduled = next_friday_art()
     result = db.execute(text("""
         INSERT INTO message_outbox (
             id, customer_id, to_identity_id, template_key, channel, payload, status, scheduled_for, created_at
@@ -430,7 +444,7 @@ def builder_queue(
             'email',
             CAST(:payload AS jsonb),
             'queued',
-            now(),
+            :scheduled_for,
             now()
         FROM customer_identities ci
         JOIN (
@@ -444,15 +458,18 @@ def builder_queue(
           AND NOT EXISTS (
               SELECT 1 FROM message_outbox mo2
               WHERE mo2.to_identity_id = ci.id
-                AND (mo2.payload->>'batch_id') = :batch_id
+                AND mo2.template_key = 'ai_variant_v1'
+                AND mo2.status = 'queued'
+                AND mo2.payload->>'subject_line' = :subject_line
           )
     """), {
-        "batch_id": batch_id,
         "payload": __import__("json").dumps({**fields, "batch_id": batch_id}),
+        "scheduled_for": scheduled,
+        "subject_line": subject_line,
     })
 
     db.commit()
-    return {"queued": result.rowcount, "batch_id": batch_id}
+    return {"queued": result.rowcount, "batch_id": batch_id, "scheduled_for": scheduled.isoformat()}
 
 
 @router.delete("/admin/email-builder/clear-queue", dependencies=[Depends(require_builder_key)])

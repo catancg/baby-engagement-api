@@ -1,3 +1,4 @@
+import json
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from datetime import datetime, timezone
@@ -6,7 +7,7 @@ from app.schemas.signup import SignupIn
 ALLOWED_INTERESTS = {"baby_items", "toys", "cochesitos", "cunas"}
 
 
-def create_signup(db: Session, data) -> tuple[str, str]:
+def create_signup(db: Session, data) -> tuple[str, str, bool]:
     """
     Creates/ensures:
       - customer row
@@ -133,11 +134,15 @@ def create_signup(db: Session, data) -> tuple[str, str]:
                 values (
                     :customer_id, 'email'::channel_type, :identity_id,
                     'welcome_v1',
-                    jsonb_build_object('name', :name, 'email', :email),
+                    CAST(:payload AS jsonb),
                     now()
                 )
             """),
-            {"customer_id": customer_id, "identity_id": identity_id, "name": name, "email": email},
+            {
+                "customer_id": customer_id,
+                "identity_id": identity_id,
+                "payload": json.dumps({"name": name, "email": email}),
+            },
         )
 
-    return customer_id, identity_id
+    return customer_id, identity_id, is_new_customer

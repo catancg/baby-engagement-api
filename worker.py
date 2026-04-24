@@ -201,6 +201,7 @@ def main():
                 time.sleep(3)
                 continue
 
+            test_sample_sent = False
             for outbox_id, template_key, to_email, payload in batch:
                 original_to = to_email
                 try:
@@ -216,6 +217,11 @@ def main():
                     if EMAIL_SEND_MODE == "TEST":
                         if not TEST_TO_EMAIL:
                             raise RuntimeError("EMAIL_SEND_MODE=TEST but TEST_TO_EMAIL is not set")
+
+                        if test_sample_sent:
+                            mark_sent(db, outbox_id)
+                            print("TEST SKIP (sample already sent) ->", original_to)
+                            continue
 
                         to_email = TEST_TO_EMAIL
                         subject = f"[TEST] {subject}"
@@ -237,6 +243,8 @@ def main():
                     send_smtp(to_email, subject, text_body, html_body=html_body)
                     mark_sent(db, outbox_id)
                     print("SENT", outbox_id, "->", to_email, "(original:", original_to, ")")
+                    if EMAIL_SEND_MODE == "TEST":
+                        test_sample_sent = True
 
                 except Exception as e:
                     mark_failed(db, outbox_id, repr(e))

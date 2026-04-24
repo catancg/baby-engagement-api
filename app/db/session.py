@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker
 
 from app.core.config import DATABASE_URL
@@ -9,6 +9,10 @@ engine = create_engine(
     _db_url,
     pool_pre_ping=True,
 )
+
+@event.listens_for(engine, "connect")
+def disable_prepared_statements(dbapi_connection, connection_record):
+    dbapi_connection.prepare_threshold = None
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
