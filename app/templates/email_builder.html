@@ -20,8 +20,12 @@
       flex-shrink: 0;
       z-index: 10;
     }
-    .topbar h1 { font-size: 17px; font-weight: 900; color: #111; flex: 1; }
+    .topbar h1 { font-size: 17px; font-weight: 900; color: #111; }
     .topbar .badge { background: #fce4ec; color: #c2185b; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 99px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .topbar .nav-links { display: flex; gap: 14px; font-size: 13px; flex: 1; }
+    .topbar .nav-links a { color: #555; text-decoration: none; font-weight: 600; }
+    .topbar .nav-links a:hover { text-decoration: underline; }
+    .topbar .nav-links a.active { color: #1a73e8; }
     .btn {
       border: none; border-radius: 10px;
       padding: 9px 18px; font-family: inherit; font-size: 13px; font-weight: 700;
@@ -128,6 +132,12 @@
 <div class="topbar">
   <span class="badge">Builder</span>
   <h1>Email Builder — Pika Pika</h1>
+  <div class="nav-links">
+    <a href="/admin/ui">Dashboard</a>
+    <a href="/admin/ui/customers">Clientes</a>
+    <a href="/admin/email-builder" class="active">Email Builder</a>
+    <a href="/admin/news-builder">News Builder</a>
+  </div>
   <div class="action-group">
     <span id="queueResult"></span>
     <button class="btn btn-queue" id="queueBtn" onclick="queueEmails()">Encolar envíos</button>

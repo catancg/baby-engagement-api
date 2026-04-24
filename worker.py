@@ -132,6 +132,34 @@ def render_email(template_key: str, payload: dict) -> tuple[str, str, str]:
         )
         return subject, text_body, html_body
 
+    if template_key == "news_v1":
+        subject = payload.get("subject_line", "Novedades en Pika Pika 🛍️")
+        products = payload.get("products", [])
+        intro_text = payload.get("intro_text", "")
+        promo_text = payload.get("promo_text", "")
+        text_body = f"{intro_text}\n\n"
+        for p in products:
+            text_body += f"- {p.get('name', '')}"
+            if p.get("price"):
+                text_body += f" — {p['price']}"
+            text_body += "\n"
+        if promo_text:
+            text_body += f"\n{promo_text}\n"
+        text_body += f"\nWhatsApp: {WHATSAPP_URL}\nInstagram: {INSTAGRAM_URL}\n\nDarte de baja:\n{unsubscribe_url}\n"
+        template = jinja_env.get_template("news_email.html")
+        html_body = template.render(
+            logo_url=f"{base_url}/static/logo.png",
+            intro_text=intro_text,
+            products=products,
+            promo_text=promo_text,
+            closing_message=payload.get("closing_message", ""),
+            whatsapp_url=WHATSAPP_URL,
+            instagram_url=INSTAGRAM_URL,
+            instagram_handle=INSTAGRAM_HANDLE,
+            unsubscribe_url=unsubscribe_url,
+        )
+        return subject, text_body, html_body
+
     return "Novedades", "Hola!", "<p>Hola!</p>"
 
 

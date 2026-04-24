@@ -1,7 +1,6 @@
 import os
-from fastapi import APIRouter, Header, HTTPException
+from fastapi import APIRouter, HTTPException
 from fastapi.responses import HTMLResponse
-from fastapi import Query
 router = APIRouter(prefix="/admin", tags=["admin-ui"])
 
 def require_admin_key(x_admin_key: str | None):
@@ -12,12 +11,7 @@ def require_admin_key(x_admin_key: str | None):
         raise HTTPException(status_code=401, detail="Unauthorized")
 
 @router.get("/ui", response_class=HTMLResponse)
-def admin_ui(key: str | None = Query(default=None),
-    x_admin_key: str | None = Header(default=None),
-):
-    admin_key = key or x_admin_key
-    require_admin_key(admin_key)
-
+def admin_ui():
     html = f"""
 <!doctype html>
 <html lang="es">
@@ -27,12 +21,15 @@ def admin_ui(key: str | None = Query(default=None),
   <title>Admin — Pika Pika</title>
   <style>
     * {{ box-sizing: border-box; }}
-    body {{ font-family: system-ui, Arial; margin: 0; padding: 20px; background: #f8f9fa; color: #222; }}
+    body {{ font-family: system-ui, Arial; margin: 0; padding: 0; background: #f8f9fa; color: #222; }}
+    .topbar {{ background: #fff; border-bottom: 1px solid #e0e0e0; padding: 10px 20px; display: flex; align-items: center; gap: 20px; }}
+    .topbar h1 {{ font-size: 16px; font-weight: 700; color: #333; margin: 0; }}
+    .nav-links {{ display: flex; gap: 14px; font-size: 13px; flex: 1; }}
+    .nav-links a {{ color: #555; text-decoration: none; font-weight: 600; }}
+    .nav-links a:hover {{ text-decoration: underline; }}
+    .nav-links a.active {{ color: #1a73e8; }}
+    .content {{ padding: 20px; }}
     h2 {{ margin: 0 0 4px; }}
-    .nav {{ margin-bottom: 16px; font-size: 13px; display: flex; gap: 16px; }}
-    .nav a {{ color: #555; text-decoration: none; font-weight: 600; }}
-    .nav a:hover {{ text-decoration: underline; }}
-    .nav a.active {{ color: #1a73e8; }}
 
     .summary-row {{ display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }}
     .stat-card {{
@@ -80,10 +77,16 @@ def admin_ui(key: str | None = Query(default=None),
   </style>
 </head>
 <body>
-  <div class="nav">
-    <a href="/admin/ui?key={admin_key}" class="active">Dashboard</a>
-    <a href="/admin/ui/customers?key={admin_key}">Clientes &amp; Intereses</a>
+  <div class="topbar">
+    <h1>Admin — Pika Pika</h1>
+    <div class="nav-links">
+      <a href="/admin/ui" class="active">Dashboard</a>
+      <a href="/admin/ui/customers">Clientes</a>
+      <a href="/admin/email-builder">Email Builder</a>
+      <a href="/admin/news-builder">News Builder</a>
+    </div>
   </div>
+  <div class="content">
   <h2>Admin Dashboard — Pika Pika</h2>
 
   <div class="summary-row" id="summaryRow">
@@ -131,7 +134,8 @@ def admin_ui(key: str | None = Query(default=None),
   </div>
 
 <script>
-  const ADMIN_KEY = "{admin_key}";
+  const ADMIN_KEY = sessionStorage.getItem('builderKey') || '';
+  if (!ADMIN_KEY) window.location.replace('/builder-login?next=/admin/ui');
 
   async function apiGet(path) {{
     const res = await fetch(path, {{ headers: {{ "x-admin-key": ADMIN_KEY }} }});
@@ -242,6 +246,7 @@ def admin_ui(key: str | None = Query(default=None),
 
   loadSummary();
 </script>
+</div>
 </body>
 </html>
 """
@@ -249,13 +254,7 @@ def admin_ui(key: str | None = Query(default=None),
 
 
 @router.get("/ui/customers", response_class=HTMLResponse)
-def admin_ui_customers(
-    key: str | None = Query(default=None),
-    x_admin_key: str | None = Header(default=None),
-):
-    admin_key = key or x_admin_key
-    require_admin_key(admin_key)
-
+def admin_ui_customers():
     html = f"""
 <!doctype html>
 <html lang="es">
@@ -265,11 +264,15 @@ def admin_ui_customers(
   <title>Clientes — Pika Pika Admin</title>
   <style>
     * {{ box-sizing: border-box; }}
-    body {{ font-family: system-ui, Arial; margin: 0; padding: 20px; background: #f8f9fa; color: #222; }}
+    body {{ font-family: system-ui, Arial; margin: 0; padding: 0; background: #f8f9fa; color: #222; }}
+    .topbar {{ background: #fff; border-bottom: 1px solid #e0e0e0; padding: 10px 20px; display: flex; align-items: center; gap: 20px; }}
+    .topbar h1 {{ font-size: 16px; font-weight: 700; color: #333; margin: 0; }}
+    .nav-links {{ display: flex; gap: 14px; font-size: 13px; flex: 1; }}
+    .nav-links a {{ color: #555; text-decoration: none; font-weight: 600; }}
+    .nav-links a:hover {{ text-decoration: underline; }}
+    .nav-links a.active {{ color: #1a73e8; }}
+    .content {{ padding: 20px; }}
     h2 {{ margin: 0 0 4px; }}
-    .nav {{ margin-bottom: 16px; font-size: 13px; }}
-    .nav a {{ color: #555; text-decoration: none; }}
-    .nav a:hover {{ text-decoration: underline; }}
     .summary-row {{ display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }}
     .stat-card {{
       background: #fff; border: 1px solid #e0e0e0; border-radius: 10px;
@@ -304,7 +307,16 @@ def admin_ui_customers(
   </style>
 </head>
 <body>
-  <div class="nav"><a href="/admin/ui?key={admin_key}">← Admin principal</a></div>
+  <div class="topbar">
+    <h1>Admin — Pika Pika</h1>
+    <div class="nav-links">
+      <a href="/admin/ui">Dashboard</a>
+      <a href="/admin/ui/customers" class="active">Clientes</a>
+      <a href="/admin/email-builder">Email Builder</a>
+      <a href="/admin/news-builder">News Builder</a>
+    </div>
+  </div>
+  <div class="content">
   <h2>Clientes &amp; Intereses — Pika Pika</h2>
 
   <div class="summary-row" id="summaryRow">
@@ -346,7 +358,8 @@ def admin_ui_customers(
   </div>
 
 <script>
-  const ADMIN_KEY = "{admin_key}";
+  const ADMIN_KEY = sessionStorage.getItem('builderKey') || '';
+  if (!ADMIN_KEY) window.location.replace('/builder-login?next=/admin/ui/customers');
   let allCustomers = [];
   let sortKey = "created_at";
   let sortAsc = false;
@@ -464,6 +477,7 @@ def admin_ui_customers(
   document.getElementById("arr-created_at").textContent = "▼";
   load();
 </script>
+</div>
 </body>
 </html>
 """

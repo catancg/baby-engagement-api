@@ -95,6 +95,8 @@
       if (e.key === 'Enter') login();
     });
 
+    const nextUrl = new URLSearchParams(window.location.search).get('next') || '/admin/email-builder';
+
     async function login() {
       const key = document.getElementById('pwd').value.trim();
       if (!key) return;
@@ -107,7 +109,7 @@
 
       if (res.ok || res.status === 422) {
         sessionStorage.setItem('builderKey', key);
-        window.location.replace('/admin/email-builder');
+        window.location.replace(nextUrl);
       } else {
         document.getElementById('err').style.display = 'block';
         document.getElementById('pwd').focus();
