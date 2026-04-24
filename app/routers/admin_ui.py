@@ -18,42 +18,88 @@ def admin_ui(key: str | None = Query(default=None),
     admin_key = key or x_admin_key
     require_admin_key(admin_key)
 
-    # JS will call the API endpoints using the same x-admin-key
     html = f"""
 <!doctype html>
 <html lang="es">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Pika Pika Admin</title>
+  <title>Admin — Pika Pika</title>
   <style>
-    body {{ font-family: system-ui, Arial; margin: 20px; }}
-    .row {{ display:flex; gap:12px; flex-wrap:wrap; }}
-    .card {{ border:1px solid #ddd; border-radius:10px; padding:12px; min-width:260px; }}
-    table {{ width:100%; border-collapse:collapse; }}
-    th, td {{ border-bottom:1px solid #eee; padding:8px; text-align:left; font-size:14px; }}
-    input, select, button {{ padding:8px; font-size:14px; }}
-    button {{ cursor:pointer; }}
-    .muted {{ color:#666; }}
-    code {{ background:#f5f5f5; padding:2px 4px; border-radius:6px; }}
-    .error {{ color:#b00020; white-space:pre-wrap; }}
+    * {{ box-sizing: border-box; }}
+    body {{ font-family: system-ui, Arial; margin: 0; padding: 20px; background: #f8f9fa; color: #222; }}
+    h2 {{ margin: 0 0 4px; }}
+    .nav {{ margin-bottom: 16px; font-size: 13px; display: flex; gap: 16px; }}
+    .nav a {{ color: #555; text-decoration: none; font-weight: 600; }}
+    .nav a:hover {{ text-decoration: underline; }}
+    .nav a.active {{ color: #1a73e8; }}
+
+    .summary-row {{ display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }}
+    .stat-card {{
+      background: #fff; border: 1px solid #e0e0e0; border-radius: 10px;
+      padding: 14px 20px; min-width: 120px; text-align: center;
+    }}
+    .stat-card .num {{ font-size: 28px; font-weight: 700; line-height: 1; }}
+    .stat-card .lbl {{ font-size: 12px; color: #666; margin-top: 4px; text-transform: uppercase; letter-spacing: .5px; }}
+
+    .tools-row {{ display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }}
+    .tool-card {{
+      background: #fff; border: 1px solid #e0e0e0; border-radius: 10px;
+      padding: 16px 18px; flex: 1; min-width: 260px;
+    }}
+    .tool-card h3 {{ margin: 0 0 12px; font-size: 15px; color: #333; }}
+    .ctrl-row {{ display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }}
+    select, input[type=text] {{
+      padding: 7px 10px; font-size: 14px; border: 1px solid #ccc;
+      border-radius: 6px; background: #fff;
+    }}
+    input[type=text] {{ flex: 1; min-width: 160px; }}
+    button {{
+      padding: 7px 16px; font-size: 14px; border: none; border-radius: 6px;
+      background: #1a73e8; color: #fff; cursor: pointer; font-weight: 600;
+    }}
+    button:hover {{ background: #1558c0; }}
+    button.secondary {{ background: #f1f3f4; color: #333; }}
+    button.secondary:hover {{ background: #e0e0e0; }}
+
+    .tbl-wrap {{ background: #fff; border: 1px solid #e0e0e0; border-radius: 10px; overflow: auto; margin-bottom: 20px; }}
+    table {{ width: 100%; border-collapse: collapse; font-size: 13px; }}
+    thead th {{ background: #fafafa; border-bottom: 2px solid #e0e0e0; padding: 9px 12px; text-align: left; font-weight: 600; white-space: nowrap; }}
+    tbody tr:hover {{ background: #f5f8ff; }}
+    td {{ padding: 8px 12px; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }}
+    .badge {{
+      display: inline-block; font-size: 11px; font-weight: 600;
+      padding: 2px 8px; border-radius: 12px;
+    }}
+    .b-queued  {{ background: #fff3cd; color: #856404; }}
+    .b-sent    {{ background: #d1e7dd; color: #0a3622; }}
+    .b-failed  {{ background: #f8d7da; color: #842029; }}
+    .muted {{ color: #888; font-size: 13px; }}
+    .error {{ color: #b00020; font-size: 13px; margin-top: 6px; white-space: pre-wrap; }}
+    #resultsTitle {{ font-size: 15px; font-weight: 700; margin: 0 0 10px; color: #333; }}
   </style>
 </head>
 <body>
+  <div class="nav">
+    <a href="/admin/ui?key={admin_key}" class="active">Dashboard</a>
+    <a href="/admin/ui/customers?key={admin_key}">Clientes &amp; Intereses</a>
+  </div>
   <h2>Admin Dashboard — Pika Pika</h2>
-  <p class="muted">Este panel usa tu <code>x-admin-key</code> (ya validada en el server).</p>
 
-  <div class="row">
-    <div class="card">
-      <h3>Resumen</h3>
-      <div id="summary">Cargando...</div>
-      <div id="summaryErr" class="error"></div>
-      <button onclick="loadSummary()">Actualizar</button>
-    </div>
+  <div class="summary-row" id="summaryRow">
+    <div class="stat-card"><div class="num" id="statCustomers">—</div><div class="lbl">Clientes</div></div>
+    <div class="stat-card"><div class="num" id="statOutbox">—</div><div class="lbl">Outbox total</div></div>
+    <div class="stat-card"><div class="num" id="statQueued">—</div><div class="lbl">En cola</div></div>
+    <div class="stat-card"><div class="num" id="statSent">—</div><div class="lbl">Enviados</div></div>
+    <div class="stat-card"><div class="num" id="statFailed">—</div><div class="lbl">Fallidos</div></div>
+    <div class="stat-card"><div class="num" id="statConsent">—</div><div class="lbl">Con consentimiento</div></div>
+  </div>
+  <div id="summaryErr" class="error"></div>
 
-    <div class="card">
+  <div class="tools-row">
+    <div class="tool-card">
       <h3>Outbox</h3>
-      <div class="row">
+      <div class="ctrl-row">
         <select id="statusSel">
           <option value="queued">queued</option>
           <option value="sent">sent</option>
@@ -64,126 +110,134 @@ def admin_ui(key: str | None = Query(default=None),
       <div id="outboxErr" class="error"></div>
     </div>
 
-    <div class="card">
+    <div class="tool-card">
       <h3>Debug por identidad</h3>
-      <div class="row">
+      <div class="ctrl-row">
         <select id="chanSel">
           <option value="email">email</option>
           <option value="whatsapp">whatsapp</option>
           <option value="instagram">instagram</option>
         </select>
-        <input id="valInput" placeholder="email o teléfono o @usuario" style="flex:1;" />
+        <input type="text" id="valInput" placeholder="email o @usuario" />
+        <button onclick="debugIdentity()">Buscar</button>
       </div>
-      <button onclick="debugIdentity()" style="margin-top:8px;">Buscar</button>
       <div id="debugErr" class="error"></div>
     </div>
   </div>
 
-  <h3 style="margin-top:20px;">Resultados</h3>
-  <div id="results"></div>
+  <div id="resultsSection" style="display:none;">
+    <p id="resultsTitle"></p>
+    <div class="tbl-wrap"><div id="results"></div></div>
+  </div>
 
 <script>
   const ADMIN_KEY = "{admin_key}";
 
   async function apiGet(path) {{
-    const res = await fetch(path, {{
-      headers: {{
-        "x-admin-key": ADMIN_KEY
-      }}
-    }});
+    const res = await fetch(path, {{ headers: {{ "x-admin-key": ADMIN_KEY }} }});
     const text = await res.text();
     if (!res.ok) throw new Error(`HTTP ${{res.status}}: ${{text}}`);
     return JSON.parse(text);
   }}
 
-  function renderKv(obj) {{
-    return "<table>" + Object.entries(obj).map(([k,v]) =>
-      `<tr><th>${{k}}</th><td>${{v}}</td></tr>`
-    ).join("") + "</table>";
+  function esc(s) {{
+    return String(s ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  }}
+
+  function fmtDate(s) {{
+    return s ? s.substring(0, 16).replace("T", " ") : "—";
   }}
 
   async function loadSummary() {{
-    document.getElementById("summaryErr").innerText = "";
-    document.getElementById("summary").innerText = "Cargando...";
+    document.getElementById("summaryErr").textContent = "";
     try {{
       const data = await apiGet("/admin/summary");
-      const counts = data.counts || {{}};
-      const outbox = (data.outbox_by_status || []).map(x => `${{x.status}}: ${{x.count}}`).join("<br>");
-      const cons = (data.current_promotions_consent_by_status || []).map(x => `${{x.status}}: ${{x.count}}`).join("<br>") || "(view no disponible)";
-      document.getElementById("summary").innerHTML =
-        `<b>Counts</b>${{renderKv(counts)}}<br><b>Outbox</b><br>${{outbox}}<br><br><b>Consent</b><br>${{cons}}`;
+      const c = data.counts || {{}};
+      document.getElementById("statCustomers").textContent = c.customers ?? "—";
+      document.getElementById("statOutbox").textContent    = c.outbox ?? "—";
+      const byStatus = {{}};
+      for (const x of (data.outbox_by_status || [])) byStatus[x.status] = x.count;
+      document.getElementById("statQueued").textContent  = byStatus.queued  ?? 0;
+      document.getElementById("statSent").textContent    = byStatus.sent    ?? 0;
+      document.getElementById("statFailed").textContent  = byStatus.failed  ?? 0;
+      const granted = (data.current_promotions_consent_by_status || []).find(x => x.status === "granted");
+      document.getElementById("statConsent").textContent = granted ? granted.count : "—";
     }} catch(e) {{
-      document.getElementById("summary").innerText = "";
-      document.getElementById("summaryErr").innerText = String(e);
+      document.getElementById("summaryErr").textContent = String(e);
     }}
   }}
 
   async function loadOutbox() {{
-    document.getElementById("outboxErr").innerText = "";
+    document.getElementById("outboxErr").textContent = "";
     const status = document.getElementById("statusSel").value;
     try {{
       const data = await apiGet(`/admin/outbox?status=${{encodeURIComponent(status)}}&limit=50`);
       const items = data.items || [];
-      const rows = items.map(it => `
-        <tr>
-          <td>${{it.outbox_id}}</td>
-          <td>${{it.recipient}}</td>
-          <td>${{it.template_key}}</td>
-          <td>${{it.status}}</td>
-          <td>${{it.scheduled_for || ""}}</td>
-          <td>${{it.sent_at || ""}}</td>
-        </tr>`).join("");
-      document.getElementById("results").innerHTML = `
-        <h4>Outbox: ${{status}} (últimos 50)</h4>
+      const rows = items.map(it => `<tr>
+        <td class="muted" style="font-size:11px;">${{esc(it.outbox_id).substring(0,8)}}…</td>
+        <td>${{esc(it.first_name || "")}}</td>
+        <td>${{esc(it.recipient)}}</td>
+        <td><span class="badge b-${{it.status}}">${{it.status}}</span></td>
+        <td>${{esc(it.template_key)}}</td>
+        <td class="muted">${{fmtDate(it.scheduled_for)}}</td>
+        <td class="muted">${{fmtDate(it.sent_at)}}</td>
+      </tr>`).join("");
+      showResults(`Outbox: ${{status}} (últimos 50)`, `
         <table>
-          <thead><tr>
-            <th>outbox_id</th><th>recipient</th><th>template</th><th>status</th><th>scheduled_for</th><th>sent_at</th>
-          </tr></thead>
-          <tbody>${{rows || "<tr><td colspan='6'>(sin datos)</td></tr>"}}</tbody>
-        </table>`;
+          <thead><tr><th>ID</th><th>Nombre</th><th>Email</th><th>Estado</th><th>Template</th><th>Programado</th><th>Enviado</th></tr></thead>
+          <tbody>${{rows || "<tr><td colspan='7' class='muted' style='padding:16px;text-align:center;'>Sin datos</td></tr>"}}</tbody>
+        </table>`);
     }} catch(e) {{
-      document.getElementById("outboxErr").innerText = String(e);
+      document.getElementById("outboxErr").textContent = String(e);
     }}
   }}
 
   async function debugIdentity() {{
-    document.getElementById("debugErr").innerText = "";
+    document.getElementById("debugErr").textContent = "";
     const channel = document.getElementById("chanSel").value;
     const value = document.getElementById("valInput").value.trim();
-    if (!value) {{
-      document.getElementById("debugErr").innerText = "Ingresá un valor.";
-      return;
-    }}
+    if (!value) {{ document.getElementById("debugErr").textContent = "Ingresá un valor."; return; }}
     try {{
       const data = await apiGet(`/admin/debug/identity?channel=${{encodeURIComponent(channel)}}&value=${{encodeURIComponent(value)}}`);
       const cust = data.customer || {{}};
-      const consent = data.current_promotions_consent || null;
+      const consent = data.current_promotions_consent;
       const outbox = data.recent_outbox || [];
-      const outboxRows = outbox.map(it => `
-        <tr>
-          <td>${{it.outbox_id}}</td>
-          <td>${{it.status}}</td>
-          <td>${{it.template_key}}</td>
-          <td>${{it.scheduled_for || ""}}</td>
-          <td>${{it.sent_at || ""}}</td>
-          <td>${{it.created_at || ""}}</td>
-        </tr>`).join("");
+      const custRows = Object.entries(cust).map(([k,v]) =>
+        `<tr><td style="font-weight:600;width:140px;">${{esc(k)}}</td><td>${{esc(v)}}</td></tr>`).join("");
+      const outboxRows = outbox.map(it => `<tr>
+        <td class="muted" style="font-size:11px;">${{esc(it.outbox_id).substring(0,8)}}…</td>
+        <td><span class="badge b-${{it.status}}">${{it.status}}</span></td>
+        <td>${{esc(it.template_key)}}</td>
+        <td class="muted">${{fmtDate(it.scheduled_for)}}</td>
+        <td class="muted">${{fmtDate(it.sent_at)}}</td>
+        <td class="muted">${{fmtDate(it.created_at)}}</td>
+      </tr>`).join("");
 
-      document.getElementById("results").innerHTML = `
-        <h4>Debug</h4>
-        <b>Customer</b>${{renderKv(cust)}}<br>
-        <b>Current promotions consent</b><br>${{consent ? renderKv(consent) : "(no disponible)"}}
-        <br><br>
-        <b>Recent outbox</b>
+      showResults(`Debug: ${{value}}`, `
+        <table style="margin-bottom:16px;">
+          <thead><tr><th colspan="2">Cliente</th></tr></thead>
+          <tbody>${{custRows}}</tbody>
+        </table>
+        <table style="margin-bottom:16px;">
+          <thead><tr><th colspan="2">Consentimiento promociones</th></tr></thead>
+          <tbody>${{consent
+            ? Object.entries(consent).map(([k,v]) => `<tr><td style="font-weight:600;width:140px;">${{esc(k)}}</td><td>${{esc(v)}}</td></tr>`).join("")
+            : "<tr><td colspan='2' class='muted'>Sin consentimiento</td></tr>"
+          }}</tbody>
+        </table>
         <table>
-          <thead><tr>
-            <th>outbox_id</th><th>status</th><th>template</th><th>scheduled_for</th><th>sent_at</th><th>created_at</th>
-          </tr></thead>
-          <tbody>${{outboxRows || "<tr><td colspan='6'>(sin datos)</td></tr>"}}</tbody>
-        </table>`;
+          <thead><tr><th>ID</th><th>Estado</th><th>Template</th><th>Programado</th><th>Enviado</th><th>Creado</th></tr></thead>
+          <tbody>${{outboxRows || "<tr><td colspan='6' class='muted' style='padding:12px;'>Sin outbox</td></tr>"}}</tbody>
+        </table>`);
     }} catch(e) {{
-      document.getElementById("debugErr").innerText = String(e);
+      document.getElementById("debugErr").textContent = String(e);
     }}
+  }}
+
+  function showResults(title, html) {{
+    document.getElementById("resultsTitle").textContent = title;
+    document.getElementById("results").innerHTML = html;
+    document.getElementById("resultsSection").style.display = "block";
   }}
 
   loadSummary();
