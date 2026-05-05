@@ -186,9 +186,9 @@
             <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%"><tbody><tr>
               <td align="center" style="padding:14px 22px;">
                 <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:separate;line-height:100%;"><tbody><tr>
-                  <td align="center" bgcolor="#5B8C5A" role="presentation" style="border:none;border-radius:25px;mso-padding-alt:10px 25px;background:#5B8C5A;" valign="middle">
-                    <a href="{{ whatsapp_url }}" style="display:inline-block;background:#5B8C5A;color:#ffffff;font-family:Nunito,Arial,sans-serif;font-size:13px;font-weight:700;line-height:120%;margin:0;text-decoration:none;padding:10px 25px;border-radius:25px;" target="_blank">
-                      💬 Consultar por WhatsApp
+                  <td align="center" bgcolor="#FF7A3D" role="presentation" style="border:none;border-radius:25px;mso-padding-alt:10px 25px;background:#FF7A3D;" valign="middle">
+                    <a href="{{ maps_url }}" style="display:inline-block;background:#FF7A3D;color:#ffffff;font-family:Nunito,Arial,sans-serif;font-size:13px;font-weight:700;line-height:120%;margin:0;text-decoration:none;padding:10px 25px;border-radius:25px;" target="_blank">
+                      📍 ¡Vení a visitarnos!
                     </a>
                   </td>
                 </tr></tbody></table>
@@ -200,9 +200,9 @@
             <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%"><tbody><tr>
               <td align="center" style="padding:14px 22px;">
                 <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:separate;line-height:100%;"><tbody><tr>
-                  <td align="center" bgcolor="#E1306C" role="presentation" style="border:none;border-radius:25px;mso-padding-alt:10px 25px;background:#E1306C;" valign="middle">
-                    <a href="{{ instagram_url }}" style="display:inline-block;background:#E1306C;color:#ffffff;font-family:Nunito,Arial,sans-serif;font-size:13px;font-weight:700;line-height:120%;margin:0;text-decoration:none;padding:10px 25px;border-radius:25px;" target="_blank">
-                      📸 Seguinos en Instagram
+                  <td align="center" bgcolor="#5B8C5A" role="presentation" style="border:none;border-radius:25px;mso-padding-alt:10px 25px;background:#5B8C5A;" valign="middle">
+                    <a href="{{ whatsapp_url }}" style="display:inline-block;background:#5B8C5A;color:#ffffff;font-family:Nunito,Arial,sans-serif;font-size:13px;font-weight:700;line-height:120%;margin:0;text-decoration:none;padding:10px 25px;border-radius:25px;" target="_blank">
+                      💬 Consultar por WhatsApp
                     </a>
                   </td>
                 </tr></tbody></table>
@@ -246,6 +246,7 @@
                   <b>Rocamora 35, Gualeguaychu, Entre Rios</b><br>
                   Lunes a Sabado<br>
                   {% if instagram_url %}Instagram: <a href="{{ instagram_url }}" style="color:#FF7A3D;text-decoration:none;">{{ instagram_handle }}</a><br>{% endif %}
+                  {% if facebook_url %}Facebook: <a href="{{ facebook_url }}" style="color:#FF7A3D;text-decoration:none;">Pika Pika</a><br>{% endif %}
                   <br>
                   Si no querés recibir más correos, <a href="{{ unsubscribe_url }}" style="color:#FF7A3D;text-decoration:none;font-weight:700;">hacé clic acá</a>.
                 </div>

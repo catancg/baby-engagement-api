@@ -144,18 +144,18 @@
       <tbody><tr><td style="padding:16px 0 10px 0;text-align:center;">
         <div style="display:inline-block;margin:0 6px;">
           <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:separate;"><tbody><tr>
-            <td align="center" bgcolor="#5B8C5A" style="border-radius:25px;padding:0;">
-              <a href="{{ whatsapp_url }}" style="display:inline-block;background:#5B8C5A;color:#fff;font-family:Nunito,Arial,sans-serif;font-size:13px;font-weight:700;text-decoration:none;padding:11px 26px;border-radius:25px;" target="_blank">
-                💬 Consultar por WhatsApp
+            <td align="center" bgcolor="#FF7A3D" style="border-radius:25px;padding:0;">
+              <a href="{{ maps_url }}" style="display:inline-block;background:#FF7A3D;color:#fff;font-family:Nunito,Arial,sans-serif;font-size:13px;font-weight:700;text-decoration:none;padding:11px 26px;border-radius:25px;" target="_blank">
+                📍 ¡Vení a visitarnos!
               </a>
             </td>
           </tr></tbody></table>
         </div>
         <div style="display:inline-block;margin:6px 6px 0;">
           <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:separate;"><tbody><tr>
-            <td align="center" bgcolor="#E1306C" style="border-radius:25px;padding:0;">
-              <a href="{{ instagram_url }}" style="display:inline-block;background:#E1306C;color:#fff;font-family:Nunito,Arial,sans-serif;font-size:13px;font-weight:700;text-decoration:none;padding:11px 26px;border-radius:25px;" target="_blank">
-                📸 Seguinos en Instagram
+            <td align="center" bgcolor="#5B8C5A" style="border-radius:25px;padding:0;">
+              <a href="{{ whatsapp_url }}" style="display:inline-block;background:#5B8C5A;color:#fff;font-family:Nunito,Arial,sans-serif;font-size:13px;font-weight:700;text-decoration:none;padding:11px 26px;border-radius:25px;" target="_blank">
+                💬 Consultar por WhatsApp
               </a>
             </td>
           </tr></tbody></table>
@@ -187,6 +187,7 @@
               <b>Rocamora 35, Gualeguaychu, Entre Rios</b><br>
               Lunes a Sabado<br>
               {% if instagram_url %}Instagram: <a href="{{ instagram_url }}" style="color:#FF7A3D;text-decoration:none;">{{ instagram_handle }}</a><br>{% endif %}
+              {% if facebook_url %}Facebook: <a href="{{ facebook_url }}" style="color:#FF7A3D;text-decoration:none;">Pika Pika</a><br>{% endif %}
               <br>
               Si no querés recibir más correos, <a href="{{ unsubscribe_url }}" style="color:#FF7A3D;text-decoration:none;font-weight:700;">hacé clic acá</a>.
             </div>

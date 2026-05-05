@@ -156,6 +156,51 @@
     #msg.success { color: #5B8C5A; }
     #msg.error   { color: #c0392b; }
 
+    .socials-divider {
+      border: none;
+      border-top: 1.5px solid #e8f0e8;
+      margin: 24px 0 18px;
+    }
+
+    .socials-label {
+      text-align: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: #999;
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      margin-bottom: 12px;
+    }
+
+    .socials-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .social-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      padding: 11px 10px;
+      border-radius: 25px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+      text-decoration: none;
+      transition: opacity .2s, transform .1s;
+    }
+
+    .social-btn:hover  { opacity: .88; }
+    .social-btn:active { transform: scale(.97); }
+
+    .social-btn.maps      { background: #FF7A3D; }
+    .social-btn.whatsapp  { background: #25D366; }
+    .social-btn.instagram { background: #E1306C; }
+    .social-btn.facebook  { background: #1877F2; }
+
     @media (max-width: 400px) {
       .card { padding: 28px 18px; }
       .interests-grid { grid-template-columns: 1fr; }
@@ -202,6 +247,15 @@
     </form>
 
     <p id="msg"></p>
+
+    <hr class="socials-divider" />
+    <p class="socials-label">Encontranos en</p>
+    <div class="socials-grid">
+      <a class="social-btn maps" href="https://www.google.com/maps/place/Pika+pika/@-33.0094136,-58.5212939,17z/data=!3m1!4b1!4m6!3m5!1s0x95baa96e7a3c9b9b:0xe3dcf248c61b47ba!8m2!3d-33.0094136!4d-58.5212939!16s%2Fg%2F11s5zh8086?entry=ttu&g_ep=EgoyMDI2MDIyNS4wIKXMDSoASAFQAw%3D%3D" target="_blank" rel="noopener">📍 Visitarnos</a>
+      <a class="social-btn whatsapp" href="https://wa.me/5493446586123" target="_blank" rel="noopener">💬 WhatsApp</a>
+      <a class="social-btn instagram" href="https://instagram.com/pikapikagchu" target="_blank" rel="noopener">📸 Instagram</a>
+      <a class="social-btn facebook" href="https://www.facebook.com/pika.pika.73295" target="_blank" rel="noopener">📘 Facebook</a>
+    </div>
   </div>
 
   <script>

@@ -393,7 +393,7 @@
                     <tr>
                       <td align="left" style="font-size:0px;padding:10px 25px;word-break:break-word;">
                         <div style="font-family:Nunito, Arial, sans-serif;font-size:12px;line-height:24px;text-align:left;color:#7A8A78;"><b>{{ address }}</b><br />
-                          {{ hours }}<br /> {% if instagram_url %} Instagram: <a href="{{ instagram_url }}" style="color:#FF7A3D;text-decoration:none;">{{ instagram_handle }}</a><br /> {% endif %} <br /> Si no querés recibir más correos, <a href="{{ unsubscribe_url }}" style="color:#FF7A3D;text-decoration:none;font-weight:700;"> hacé clic acá </a>.
+                          {{ hours }}<br /> {% if instagram_url %} Instagram: <a href="{{ instagram_url }}" style="color:#FF7A3D;text-decoration:none;">{{ instagram_handle }}</a><br /> {% endif %} {% if facebook_url %} Facebook: <a href="{{ facebook_url }}" style="color:#FF7A3D;text-decoration:none;">Pika Pika</a><br /> {% endif %} <br /> Si no querés recibir más correos, <a href="{{ unsubscribe_url }}" style="color:#FF7A3D;text-decoration:none;font-weight:700;"> hacé clic acá </a>.
                         </div>
                       </td>
                     </tr>
