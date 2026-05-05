@@ -33,6 +33,7 @@ MAPS_URL = "https://www.google.com/maps/place/Pika+pika/@-33.0094136,-58.5212939
 WHATSAPP_URL = "https://wa.me/5493446586123"
 INSTAGRAM_URL = "https://instagram.com/pikapikagchu"
 INSTAGRAM_HANDLE = "@pikapikagchu"
+FACEBOOK_URL = "https://www.facebook.com/pika.pika.73295"
 ADDRESS = "Rocamora 35, Gualeguaychu, Entre Rios"
 HOURS = "Lunes a Sabado"
 TERMS_LINE = "Válido presentando este email en el local Pika Pika"
@@ -64,6 +65,7 @@ def render_email(template_key: str, payload: dict) -> tuple[str, str, str]:
             terms_line=TERMS_LINE,
             instagram_url=INSTAGRAM_URL,
             instagram_handle=INSTAGRAM_HANDLE,
+            facebook_url=FACEBOOK_URL,
             unsubscribe_url=unsubscribe_url,
         )
         return subject, text_body, html_body
@@ -102,6 +104,7 @@ def render_email(template_key: str, payload: dict) -> tuple[str, str, str]:
             hours=HOURS,
             instagram_url=INSTAGRAM_URL,
             instagram_handle=INSTAGRAM_HANDLE,
+            facebook_url=FACEBOOK_URL,
             unsubscribe_url=unsubscribe_url,
         )
         return subject, text_body, html_body
@@ -125,9 +128,11 @@ def render_email(template_key: str, payload: dict) -> tuple[str, str, str]:
         html_body = template.render(
             name=name,
             logo_url=logo_url,
+            maps_url=MAPS_URL,
             whatsapp_url=WHATSAPP_URL,
             instagram_url=INSTAGRAM_URL,
             instagram_handle=INSTAGRAM_HANDLE,
+            facebook_url=FACEBOOK_URL,
             unsubscribe_url=unsubscribe_url,
         )
         return subject, text_body, html_body
@@ -153,9 +158,11 @@ def render_email(template_key: str, payload: dict) -> tuple[str, str, str]:
             products=products,
             promo_text=promo_text,
             closing_message=payload.get("closing_message", ""),
+            maps_url=MAPS_URL,
             whatsapp_url=WHATSAPP_URL,
             instagram_url=INSTAGRAM_URL,
             instagram_handle=INSTAGRAM_HANDLE,
+            facebook_url=FACEBOOK_URL,
             unsubscribe_url=unsubscribe_url,
         )
         return subject, text_body, html_body

@@ -42,6 +42,7 @@ def preview_email(request: Request):
             "terms_line": "Válido presentando este email en el local Pika Pika",
             "instagram_url": "https://instagram.com/pikapikagchu",
             "instagram_handle": "@pikapikagchu",
+            "facebook_url": "https://www.facebook.com/pika.pika.73295",
             "unsubscribe_url": f"{base_url}/unsubscribe?channel=email&value=test@example.com"
         }
     )

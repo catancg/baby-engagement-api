@@ -16,9 +16,11 @@ from app.db.session import get_db
 router = APIRouter(tags=["news-builder"])
 
 BASE_URL = os.getenv("APP_BASE_URL", "http://127.0.0.1:8000")
+MAPS_URL = "https://www.google.com/maps/place/Pika+pika/@-33.0094136,-58.5212939,17z/data=!3m1!4b1!4m6!3m5!1s0x95baa96e7a3c9b9b:0xe3dcf248c61b47ba!8m2!3d-33.0094136!4d-58.5212939!16s%2Fg%2F11s5zh8086?entry=ttu&g_ep=EgoyMDI2MDIyNS4wIKXMDSoASAFQAw%3D%3D"
 WHATSAPP_URL = "https://wa.me/5493446586123"
 INSTAGRAM_URL = "https://instagram.com/pikapikagchu"
 INSTAGRAM_HANDLE = "@pikapikagchu"
+FACEBOOK_URL = "https://www.facebook.com/pika.pika.73295"
 
 TEMPLATES_DIR = Path(__file__).resolve().parent.parent / "templates"
 _UPLOADS_DIR = TEMPLATES_DIR.parent / "static" / "uploads"
@@ -74,9 +76,11 @@ def _render_news_html(payload: dict, to_email: str = "preview@example.com") -> s
         products=payload.get("products", []),
         promo_text=payload.get("promo_text", ""),
         closing_message=payload.get("closing_message", ""),
+        maps_url=MAPS_URL,
         whatsapp_url=WHATSAPP_URL,
         instagram_url=INSTAGRAM_URL,
         instagram_handle=INSTAGRAM_HANDLE,
+        facebook_url=FACEBOOK_URL,
         unsubscribe_url=unsubscribe_url,
     )
 

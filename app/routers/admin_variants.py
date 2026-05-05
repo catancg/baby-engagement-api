@@ -41,6 +41,7 @@ MAPS_URL = "https://www.google.com/maps/place/Pika+pika/@-33.0094136,-58.5212939
 WHATSAPP_URL = "https://wa.me/5493446586123"
 INSTAGRAM_URL = "https://instagram.com/pikapikagchu"
 INSTAGRAM_HANDLE = "@pikapikagchu"
+FACEBOOK_URL = "https://www.facebook.com/pika.pika.73295"
 ADDRESS = "Rocamora 35, Gualeguaychu, Entre Rios"
 HOURS = "Lunes a Sabado"
 TERMS_LINE = "Válido presentando este email en el local Pika Pika"
@@ -97,6 +98,7 @@ def _render_variant_email_html(variant: EmailVariant, to_email: str = "preview@e
         hours=HOURS,
         instagram_url=INSTAGRAM_URL,
         instagram_handle=INSTAGRAM_HANDLE,
+        facebook_url=FACEBOOK_URL,
         unsubscribe_url=f"{base_url}/unsubscribe?channel=email&value={to_email}",
     )
 
@@ -313,6 +315,7 @@ def email_builder_render(
         hours             = HOURS,
         instagram_url     = INSTAGRAM_URL,
         instagram_handle  = INSTAGRAM_HANDLE,
+        facebook_url      = FACEBOOK_URL,
         unsubscribe_url   = "#",
     )
     return Response(content=html, media_type="text/html; charset=utf-8")
@@ -357,6 +360,7 @@ def _render_builder_email(fields: dict, to_email: str = "#") -> tuple[str, str, 
         hours            = HOURS,
         instagram_url    = INSTAGRAM_URL,
         instagram_handle = INSTAGRAM_HANDLE,
+        facebook_url     = FACEBOOK_URL,
         unsubscribe_url  = unsubscribe_url,
     )
     return subject, text_body, html_body
