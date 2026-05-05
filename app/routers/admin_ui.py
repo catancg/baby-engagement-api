@@ -367,7 +367,7 @@ def admin_ui_customers():
   const INTEREST_LABELS = {{
     baby_items: "Baby Items",
     toys: "Juguetes",
-    cochesitos: "Cochesitos",
+    cochesitos: "Cochecitos",
     cunas: "Cunas",
   }};
 
